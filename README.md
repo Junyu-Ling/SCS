@@ -81,6 +81,19 @@ npm run build
 
 本项目使用 **Cloudflare Pages** 部署（非 Vercel）。推送 `main` 分支后，GitHub Actions 会自动构建并发布。
 
+### Cloudflare Dashboard 构建设置（重要）
+
+在 Pages 项目 → **Settings → Builds & deployments** 中配置：
+
+| 项 | 值 |
+|---|---|
+| Framework preset | Vite（或 None） |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| **Deploy command** | **留空**（推荐），或 `npm run deploy` |
+
+**不要用** `npx wrangler deploy` — 那是 Workers 命令，会导致 `Missing entry-point` 报错。静态站点请用 `wrangler pages deploy`（即 `npm run deploy`）。
+
 ### 首次配置 Cloudflare
 
 1. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 创建 Pages 项目 `scls-campus-shop`（或直接由 wrangler 首次部署时创建）
