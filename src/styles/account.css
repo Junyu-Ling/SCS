@@ -1,0 +1,320 @@
+.accountBox {
+    display: flex;
+    margin-top: 10vh;
+    height: 90vh;
+    width: 100vw;
+    background-color: white;
+    flex-direction: row;
+}
+
+.accountInfoBox {
+    width: 30%;
+    height: 100%;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    padding: 5% 5%;
+}
+
+.accountOrderBox {
+    width: 70%;
+    height: 100%;
+    overflow: scroll;
+    border-left: 1px solid #eee;
+    padding: 1% 5%;
+}
+
+.accountOrderBox::-webkit-scrollbar {
+    width: .5vw;
+    height: 100%;
+    background-color: #eee;
+}
+
+.accountOrderBox::-webkit-scrollbar-thumb {
+    background-color: #74948b;
+}
+
+.accountInfo {
+    display: flex;
+    flex-direction: row;
+    font-size: calc(.75vh + .75vw);
+    color: black;
+}
+
+.accountOrder {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    aspect-ratio: 20;
+    border-radius: 10px;
+    margin-top: .5vw;
+}
+
+.accountOrder p {
+    width: 100vw;
+    height: 100%;
+    background-color: #f2f2f2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 .25vw;
+    font-size: calc(.75vh + .75vw);
+}
+
+.accountTitle {
+    width: 100%;
+    font-size: calc(2vh + 2vw);
+    color: black;
+}
+
+.accountInfoHr {
+    width: 100%;
+    border-color: #f2f2f2;
+    margin-bottom: 5vh;
+}
+
+.accountBtnBox {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.accountBtn {
+    background-color: #f2f2f2;
+    width: auto;
+    height: 100%;
+    box-shadow: 0 0 5px #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2% 5%;
+    border-radius: 5px;
+    font-size: calc(.75vh + .75vw);
+    text-decoration: none;
+    color: black;
+    cursor: pointer;
+}
+
+.deleteUser {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: auto;
+    background-color: #174d3d;
+    border: #002c1f 5px solid;
+    border-radius: 5px;
+    box-shadow: 0 0 20px #555;
+    padding: 2%;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+}
+
+.deleteTitle {
+    font-size: calc(1.5vh + 1.5vw);
+    color: white;
+}
+
+.deleteTitle en, .deleteTitle cn {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.deleteTitle span {
+    text-decoration: 2px white solid underline;
+}
+
+.deleteCheckboxBox {
+    display: flex;
+    flex-direction: row;
+}
+
+.deleteCheckboxBox label input[type="checkbox"] {
+    width: calc(1vw + 1vh);
+    height: calc(1vw + 1vh);
+    position: relative;
+}
+
+.deleteCheckboxBox label input[type="checkbox"]:checked {
+    background-color: white;
+}
+
+.deleteCheckboxBox p {
+    color: white;
+    font-size: calc(.75vh + .75vw);
+}
+
+.deleteInput {
+    width: 50%;
+    font-size: calc(1vh + 1vw);
+    border: 2px solid white;
+    background-color: transparent;
+    color: white;
+    border-radius: 5px;
+}
+
+.deleteBtnBox {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 5vh;
+}
+
+.deleteBtn {
+    background-color: transparent;
+    border: 2px solid white;
+    border-radius: 5px;
+    width: 40%;
+    aspect-ratio: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: calc(1vh + 1vw);
+    transition: .5s;
+    cursor: pointer;
+}
+
+.deleteBtn:hover {
+    background-color: #74948b;
+}
+
+.deleteBtn[disabled] {
+    border: 2px solid #777;
+    color: #777;
+    cursor: not-allowed;
+}
+
+.deleteUser small {
+    font-size: calc(.5vh + .5vw);
+    color: white;
+}
+
+.deleteCheckboxBox label input[type="checkbox"]::after {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    content: "";
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid #999;
+    border-radius: 50%;
+    animation: checkBoxAnimation 1s infinite;
+}
+
+@keyframes checkBoxAnimation {
+    0% {
+        width: 100%;
+        height: 100%;
+        opacity: 1;
+    }
+    100% {
+        width: 300%;
+        height: 300%;
+        opacity: 0;
+    }
+}
+
+.deleteCheckboxBox label input[type="checkbox"]:checked::after {
+    display: none;
+}
+
+.orderInfoBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: auto;
+    background-color: #174d3d;
+    border: #002c1f 5px solid;
+    border-radius: 5px;
+    box-shadow: 0 0 20px #555;
+    padding: 1%;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    color: white;
+    font-size: calc(1vh + 1vw);
+}
+
+.orderInfoHr {
+    border-color: white;
+    width: 100%;
+}
+
+.orderInfoClose {
+    background-color: transparent;
+    border: 2px solid white;
+    border-radius: 5px;
+    width: fit-content;
+    margin-left: auto;
+    margin-top: 1%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: calc(1vh + 1vw);
+    transition: .5s;
+    cursor: pointer;
+    padding: .5vh 2vw
+}
+
+.orderInfoClose:hover {
+    background-color: #74948b;
+}
+
+.orderInfoCommodityUnit, .orderInfoCommodityUnit div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.orderInfoCommodityUnit div {
+    max-width: 60vw;
+}
+
+.orderInfoCommodityUnit {
+    cursor: pointer;
+}
+
+.orderInfoTwoHalf {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.orderInfoHalf {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.orderInfoHalf p {
+    display: flex;
+    flex-direction: row;
+}
+
+.orderInfoHalf p en, .orderInfoHalf p cn, .orderInfoHalf p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.orderInfoHalf p span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(3vh + 3vw);
+}

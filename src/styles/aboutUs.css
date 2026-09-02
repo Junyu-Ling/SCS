@@ -1,0 +1,147 @@
+.firstPicBlock {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    height: calc(10vh + 10vw);
+    margin-top: 16vh;
+}
+
+.firstPicBox {
+    position: relative;
+    overflow: hidden;
+    width: 55%;
+    height: 100%;
+}
+
+.firstPic, .firstPicS, .secondPic, .secondPicS, .thirdPic, .thirdPicS {
+    position: absolute;
+    object-fit: cover;
+    opacity: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity .5s;
+    height: 100%;
+    width: 100%;
+}
+
+.firstPicS, .secondPicS {
+    filter: blur(15px);
+}
+
+.firstContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 45%;
+    height: 100%;
+    background-color: #c2ddc8;
+    font-size: calc(2vh + 2vw);
+    font-weight: bold;
+    color: black;
+}
+
+.firstContent span, .footerContentBlock span {
+    color: #ff3b00;
+}
+
+.titleBlock {
+    color: #274c3e;
+    font-size: calc(1.5vh + 1.5vw);
+    font-weight: bold;
+    width: 100%;
+    height: fit-content;
+    padding: calc(1vh + 1vw) 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+}
+
+.contentBlock {
+    width: 100%;
+    padding: 0 calc(10vh + 10vw);
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    height: fit-content;
+    font-size: calc(1vh + 1vw);
+}
+
+.contentBlock span {
+    font-weight: bold;
+}
+
+.contentBlock en, .contentBlock cn {
+    flex-direction: column;
+}
+
+.secondPicBlock {
+    width: 100%;
+    height: calc(7.5vh + 7.5vw);
+    position: relative;
+    overflow: hidden;
+}
+
+.secondTitle {
+    color: #ff3b00;
+    font-weight: bold;
+    font-size: calc(2vh + 2vw);
+    padding: calc(1vh + 1vw) 0 0 calc(10vh + 10vw);
+    background-color: white;
+}
+
+.secondContentBlock {
+    width: 100%;
+    padding: 0 calc(10vh + 10vw);
+    font-size: calc(1vh + 1vw);
+    background-color: white;
+}
+
+.secondContentBlock span {
+    font-weight: bold;
+}
+
+.secondContentBlock small {
+    font-weight: bold;
+    font-size: calc(.5vh + .5vw);
+}
+
+.secondContentBlock label {
+    color: #ff3b00;
+}
+
+.thirdPicBlock {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+}
+
+.thirdPicHalf {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+.thirdPicBox {
+    width: 80%;
+    height: 80%;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.footerContentBlock {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+    font-size: calc(2vh + 2vw);
+    width: 100%;
+    height: fit-content;
+    padding: 2.5% 0;
+    color: white;
+    align-items: center;
+    justify-content: center;
+}

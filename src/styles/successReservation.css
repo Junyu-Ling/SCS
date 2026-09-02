@@ -1,0 +1,44 @@
+.srBox {
+    width: 100%;
+    height: 90vh;
+    margin-top: 10vh;
+    background-color: #174d3d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-top: white 2px solid;
+}
+
+.srTitle {
+    color: white;
+    font-size: calc(1.75vh + 1.75vw);
+    width: fit-content;
+}
+
+.srPic {
+    width: 10%;
+    aspect-ratio: 1;
+}
+
+.srBtn {
+    width: 10vw;
+    font-size: calc(1.75vh + 1.75vw);
+    background-color: white;
+    color: #174d3d;
+    border-radius: 10px;
+    margin: 1% 0;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all .25s;
+}
+
+.srBtn:hover {
+    transform: scale(1.1);
+}
+
+.srBtn:active {
+    transform: scale(.95);
+}

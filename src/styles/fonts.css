@@ -1,0 +1,8 @@
+/* SCLS Campus Shop Custom Font */
+/* Note: Custom font loading from external URLs is disabled in this environment */
+/* Using system fonts instead for compatibility */
+
+/* Apply the font globally */
+body, div, p, input, select, a, button {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}

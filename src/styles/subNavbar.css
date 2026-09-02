@@ -1,0 +1,37 @@
+.subNavbarContainer {
+    height: 6vh;
+    width: 100%;
+    background-color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top:10%;
+    z-index: 10;
+    box-shadow: 0 2px 5px #eee;
+}
+
+.subNavbarLeftBox {
+    width: 75%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-left: .5%;
+}
+
+.subNavbarRightBox {
+    width: 20%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-right: 2.5%;
+}
+
+.subNavbarTitle {
+    font-size: calc(1.2vh + 1.2vw);
+    color: #174d3d;
+    margin: 0 3% 0 3%;
+    text-decoration: none;
+}

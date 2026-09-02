@@ -1,0 +1,42 @@
+.policy {
+    color: white;
+    display: flex;
+    margin-top: 10vh;
+    height: fit-content;
+    width: 100vw;
+    flex-direction: column;
+    padding: 0 5%;
+}
+
+.policyTitle {
+    width: 100%;
+    font-size: calc(3vh + 3vw);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.policySubtitle {
+    width: 100%;
+    font-size: calc(.5vh + .5vw);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.policyContent {
+    font-size: calc(1vh + 1vw);
+}
+
+.policySubContent {
+    font-size: calc(1vh + 1vw);
+    padding-left: 5%;
+}
+
+.policySection {
+    border: 2px solid white;
+    font-size: calc(1vh + 1vw);
+    padding: .5%;
+    width: fit-content;
+    border-radius: 10px;
+}

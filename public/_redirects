@@ -1,0 +1,2 @@
+# SPA fallback — hash 路由为主，直接访问路径仍回退到 index.html
+/*    /index.html   200

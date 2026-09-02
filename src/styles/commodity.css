@@ -1,0 +1,130 @@
+.commodityFrame {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    background-color: white;
+    flex-direction: column;
+    margin-top: 16vh;
+}
+
+.commodityContainer {
+    width: 97.5%;
+    height: fit-content;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    justify-items: center;
+    align-items: center;
+    background-color: white;
+}
+
+.commodityBox {
+    width: 90%;
+    margin: 10% 0 10% 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    box-shadow: #eee 0 0 5px 1px;
+    transition: all 0.25s;
+}
+
+.commodityBox:hover {
+    box-shadow: #ddd 0 0 10px 5px;
+}
+
+.commodityBox:active {
+    box-shadow: #ddd 0 0 5px 1px;
+}
+
+.commodityPicBox {
+    width: 100%;
+    overflow: hidden;
+    aspect-ratio: 1;
+    position: relative;
+}
+
+.commodityPic, .commodityPicS {
+    aspect-ratio: 1;
+    position: absolute;
+    object-fit: cover;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    transition: opacity .5s;
+    width: 100%;
+}
+
+.commodityPicS {
+    filter: blur(5px);
+}
+
+.commodityInfoBox {
+    width: 100%;
+    aspect-ratio: 6 / 1.5;
+    display: flex;
+    justify-content: center;
+    border-top: none;
+    background-color: white;
+    align-items: center;
+    flex-direction: column;
+}
+
+.commodityInfo {
+    margin: 0 2% 2% 2%;
+    color: black;
+    font-weight: bold;
+    font-size: calc(.75vw + .75vh);
+    word-break: break-word;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.commodityInfo label {
+    margin: 0 1% 2.5% 1%;
+}
+
+.commodityInfo label cn, .commodityInfo label en {
+    color: white;
+    font-size: calc(.5vh + .5vw);
+    border-radius: 5px;
+    white-space: nowrap;
+    height: fit-content;
+    width: fit-content;
+    padding: calc(.15vh + .15vw);
+    margin: 1%;
+    background-color: var(--color);
+}
+
+.commodityInfo cn,.commodityInfo en {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 80%;
+    margin: auto;
+    padding: calc(.25vh + .25vw);
+    display: flex;
+    justify-content: space-around;
+}
+
+.commodityInfoInnerBox {
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+    margin: auto;
+}
+
+.commodityTitle {
+    width: 100%;
+    height: fit-content;
+    margin: .75% 0;
+    font-size: calc(1.5vh + 1.5vw);
+    font-weight: bold;
+    color: #555555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

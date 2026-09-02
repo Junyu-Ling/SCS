@@ -1,0 +1,284 @@
+@media (min-aspect-ratio: 1.5/1) {
+    .cartBg {
+        width: 40%;
+        right: -42%;
+    }
+
+    .cartCloseBox {
+        width: 2%;
+        right: -2%;
+    }
+}
+
+@media (max-aspect-ratio: 1.5/1) {
+    .cartBg {
+        width: 80%;
+        right: -85%;
+    }
+
+    .cartCloseBox {
+        width: 5%;
+        right: -5%;
+    }
+}
+
+.cartBg {
+    background-color: #002c1f;
+    height: 100vh;
+    z-index: 999;
+    top: 0;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+    transition: right .5s ease-out;
+    box-shadow: -2px 0 20px 0 #222;
+}
+
+.cartBox {
+    width: 90%;
+    height: 92.5%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: column;
+    margin: auto;
+}
+
+.cartBox #sample {
+    display: none;
+}
+
+.cartTitle {
+    color: white;
+    font-size: calc(3.2vh + 3.2vw);
+    font-weight: bold;
+    margin: 3% 0 3% 0;
+}
+
+.cartList {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    overflow: scroll;
+    width: 100%;
+    flex-grow: 1;
+}
+
+.cartList::-webkit-scrollbar {
+    width: .5vw;
+    height: 100%;
+    background-color: #eee;
+}
+
+.cartList::-webkit-scrollbar-thumb {
+    background-color: #74948b;
+}
+
+.cartBar {
+    width: calc(100% - .75vw);
+    background-color: white;
+    height: calc(7.5vh + 7.5vw);
+    border-radius: 10px;
+    margin: 0 0 2% 0;
+    flex-direction: row;
+    display: flex;
+    position: relative;
+}
+
+.cartBarCheckBox {
+    width: 12%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cartBarCheck {
+    width: 30%;
+    aspect-ratio: 1;
+}
+
+input[type="checkbox"] {
+    appearance: none;
+    width: 100%;
+    aspect-ratio: 1;
+    border: 2px solid #999;
+    border-radius: 50%;
+    margin: 0;
+    transition: all 0.15s;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #174d3d;
+    border-color: #174d3d;
+    transition: all 0.15s;
+}
+
+.cartBarPicBox {
+    height: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.cartBarPic {
+    height: 90%;
+    aspect-ratio: 1;
+    border-radius: 15px;
+}
+
+.cartBarInfoBox {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.cartBarInfo {
+    width: 90%;
+    height: 40%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-evenly;
+    flex-direction: column;
+}
+
+.cartBarInfoName {
+}
+
+.cartBarInfoText {
+    width: 100%;
+    color: black;
+    font-size: calc(0.8vh + 0.8vw);
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    flex-direction: row;
+}
+
+.cartBarDeleteBox {
+    width: 12%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    transition: all 0.25s;
+    border-radius: 0 10px 10px 0;
+    border-left: #eee 2px solid;
+    cursor: pointer;
+}
+
+.cartBarDeleteBox:hover {
+    background-color: #ffbbbb;
+}
+
+.cartBarDeletePic {
+    width: 70%;
+    aspect-ratio: 1;
+}
+
+.cartCloseBox {
+    height: 100%;
+    z-index: 999;
+    background-color: transparent;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all .5s ease-out;
+}
+
+.cartCloseBtn {
+    width: 100%;
+    aspect-ratio: 1/3;
+    background-color: #999;
+    border-radius: 10px 0 0 10px;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(1.2vh + 1.2vw);
+}
+
+.cartSettlement {
+    width: 100%;
+    height: 7.5%;
+    border-top: white 2px solid;
+    display: flex;
+    flex-direction: row;
+}
+
+.selectAllCheck, .totalPriceContainer, .selectAllContainer {
+    width: 100%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(1vh + 1vw);
+}
+
+.selectAllContainer {
+    width: 30%;
+}
+
+.totalPriceContainer {
+    width: 70%;
+    justify-content: flex-end;
+}
+
+.totalPriceContainer p {
+    display: flex;
+    flex-direction: row;
+}
+
+#selectAllCheckbox {
+    width: 10%;
+}
+
+#selectAllCheckbox:checked {
+    background-color: white;
+}
+
+.submitBtn {
+    background-color: white;
+    color: #174d3d;
+    border-radius: 10px;
+    font-size: calc(.75vh + .75vw);
+    padding: 5px 10px;
+    transition: all .25s;
+    border: none;
+    margin: 0 5%;
+    font-weight: bold;
+}
+
+.submitBtn:hover {
+    transform: scale(1.05);
+}
+
+.submitBtn:active {
+    transform: scale(.95);
+}
+
+.noBuy::before {
+    content: "Sold Out / Not On Sale";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    color: white;
+    background-color: rgba(0, 0, 0, .75);
+    font-size: calc(1.5vh + 1.5vw);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

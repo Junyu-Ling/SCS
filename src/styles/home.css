@@ -1,0 +1,76 @@
+.homeContainer {
+    width: 100%;
+    height: 90vh;
+    margin-top: 10vh;
+    overflow: hidden;
+}
+
+.homeTitleBox {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    position: relative;
+    flex-direction: column;
+}
+
+.homeTitle {
+    color: white;
+    font-size: calc(3.2vw + 3.2vh);
+    text-shadow: 0 0 10px black;
+}
+
+.homeSubtitle {
+    color: white;
+    font-size: calc(1.55vw + 1.55vh);
+    margin: 0 0 2% 0;
+    text-shadow: 0 0 10px black;
+}
+
+.homeBtn {
+    width: 15%;
+    aspect-ratio: 4/1;
+    background-color: #174d3d;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50px;
+    font-size: calc(1.25vw + 1.25vh);
+    text-decoration: none;
+    position: relative;
+    transition: all 0.15s ease-in-out;
+}
+
+.homeBtn::before {
+    content: "";
+    width: 100%;
+    height: 100%;
+    border: 4px solid #174d3d;
+    background-color: transparent;
+    transition: all 0.15s ease-in-out;
+    border-radius: 50px;
+    position: absolute;
+}
+
+.homeBtn:hover::before {
+    width: calc(100% + .25vh + .25vw);
+    height: calc(100% + .25vh + .25vw);
+    border-color: #74948b;
+}
+
+.homeBtn:hover {
+    background-color: #74948b;
+}
+
+.homeBtn:active {
+    transform: scale(0.9);
+}
+
+.homeBtn cn, .homeBtn en {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

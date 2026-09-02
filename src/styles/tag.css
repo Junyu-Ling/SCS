@@ -1,0 +1,165 @@
+body {
+    overflow-x: initial !important;
+}
+
+body, html {
+    background-color: #174d3d;
+}
+
+.footer {
+    display: none !important;
+}
+
+.tagScrollBox {
+    height: 175vw;
+    width: 100vw;
+    margin-top: 10vh;
+}
+
+.tagScrollInnerBox {
+    height: 90vh;
+    width: 175vw;
+    background-color: #174d3d;
+    display: flex;
+    flex-direction: row;
+    position: sticky;
+    top: 10vh;
+    border-top: 2px solid white;
+}
+
+.tagTitleBox {
+    width: 40vw;
+    height: 90vh;
+    background-color: #174d3d;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.tagTagBox {
+    width: 135vw;
+    height: 90vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    cursor: pointer;
+}
+
+.tagTitle {
+    color: white;
+    font-size: calc(3.25vh + 3.25vw);
+    margin: 0 0 5vh 10%;
+    width: 90%;
+    line-height: 1.2;
+}
+
+.tagSubtitle {
+    color: white;
+    font-size: calc(1.15vh + 1.15vw);
+    margin: 2.5vh 10% 7.5vh 10%;
+    width: 80%;
+    line-height: .6;
+}
+
+.tagBlock {
+    width: 15%;
+    height: 75%;
+    background-color: rgba(255, 255, 255, 0.3);
+    display: flex;
+    border-radius: 10px;
+    margin-bottom: 5vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.tagPic, .tagPicS {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    height: 100%;
+    min-width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity .5s;
+}
+
+.tagPicS {
+    filter: blur(10px);
+}
+
+.tagBarBox {
+    position: fixed;
+    right: 2.5vh;
+    bottom: 2.5vh;
+    width: 36vw;
+    height: 5vh;
+    background-color: #ffcc00;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    opacity: 1;
+    transition: all 0.25s;
+}
+
+.tagBarTitle {
+    margin-left: 1vw;
+    width: 10vw;
+    height: 100%;
+    color: black;
+    font-size: calc(.75vh + .75vw);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tagBarLineBox {
+    width: 24vw;
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    margin-right: 1vw;
+}
+
+.tagBarLine {
+    --percent: 0;
+    width: calc(var(--percent)* 24vw);
+    height: .2vw;
+    background-color: black;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.tagBarLine::after {
+    position: absolute;
+    top: 50%;
+    width: 24vw;
+    height: 0;
+    border-top: black 2px dotted;
+    content: "";
+    transform: translateY(-50%);
+    box-sizing: border-box;
+}
+
+.tagTagTitle {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: calc(2vh + 2vw);
+    left: 50%;
+    bottom: 0;
+    white-space: nowrap;
+}
+
+.tagTagBg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .75) 100%);
+}

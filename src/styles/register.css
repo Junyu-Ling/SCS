@@ -1,0 +1,154 @@
+@media (min-aspect-ratio: 1/1) {
+    .registerBox {
+        min-width: 50%;
+    }
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .registerBox {
+        min-width: calc(22vh + 22vw);
+    }
+}
+
+.registerFrame {
+    height: 90vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10vh;
+    overflow: hidden;
+}
+
+.registerBox {
+    height: 95%;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    z-index: 2;
+    backdrop-filter: blur(20px);
+}
+
+.registerTitle {
+    font-size: calc(2vh + 2vw);
+    font-weight: bold;
+}
+
+.registerInputForm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.registerInputBox {
+    display: flex;
+    width: calc(18vh + 18vw);
+    align-items: center;
+    justify-content: space-between;
+}
+
+.registerInputBox label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5%;
+}
+
+.registerInputBox label small {
+    font-size: calc(0.5vh + 0.5vw);
+    font-weight: bold;
+    margin: .25vh 0;
+}
+
+.registerInputBox label input, .registerInputBox label select {
+    height: calc(1.5vw + 1.5vh);
+    width: calc(1.5vw * var(--ratio) + 1.5vh * var(--ratio));
+    border-radius: 25px;
+    border: white 2px solid;
+    background-color: transparent;
+    color: white;
+    padding-left: 10px;
+    font-size: calc(.75vh + .75vw);
+}
+
+.registerInputBox label input:disabled {
+    border-color: #a0a0a0;
+    color: #a0a0a0;
+    cursor: not-allowed;
+}
+
+.registerInputBox label input::placeholder {
+    color: #d0d0d0;
+}
+
+.registerInputBox label select option {
+    background-color: #174d3d;
+}
+
+.registerBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.25s;
+    width: calc(16vw + 16vh);
+    aspect-ratio: 10/1;
+    border-radius: 25px;
+    color: #002715;
+    font-weight: bold;
+    background-color: white;
+    border: white 2px solid;
+    margin: 2% 0 2% 0;
+}
+
+.registerHr {
+    width: 80%;
+}
+
+.registerRedirect {
+    width: calc(16vh + 16vw);
+    aspect-ratio: 10/1;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    background-color: transparent;
+    border: white 2px solid;
+    margin: 2% 0 2% 0;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s;
+}
+
+.registerRedirect:hover {
+    background-color: white;
+    color: #002715;
+}
+
+.registerBtn:hover {
+    transform: scale(1.05);
+}
+
+.registerBtn:active {
+    transform: scale(0.95);
+}
+
+.registerError {
+    color: red;
+    font-size: calc(1vh + 1vw);
+    font-weight: bold
+}
+
+.registerBtn[disabled] {
+    background-color: #aaa;
+    color: white;
+}
+
+#error::after, #error::before {
+    visibility: hidden;
+}

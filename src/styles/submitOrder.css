@@ -1,0 +1,171 @@
+.orderBox {
+    width: 100%;
+    height: 90vh;
+    display: flex;
+    flex-direction: row;
+    margin-top: 10vh;
+}
+
+.commodityInfoBox {
+    width: 70%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: #eee 1px solid;
+    background-color: white;
+    padding: 0 5vw;
+}
+
+.userInfoBox {
+    width: 30%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-left: #eee 1px solid;
+    background-color: white;
+    padding: 0 5vw;
+}
+
+.orderTitle {
+    margin-top: 4vh;
+    font-size: calc(1.5vh + 1.5vw);
+    color: black;
+    margin-bottom: 2vh;
+}
+
+.orderHr {
+    width: 100%;
+    background-color: #eee;
+    margin: 1vh 0;
+    border: none;
+    height: 2px;
+}
+
+.orderInfo {
+    font-size: calc(.85vh + .85vw);
+    color: black;
+    line-height: 1.1;
+}
+
+.orderInfo a {
+    color: black;
+}
+
+.orderInfo p {
+    display: flex;
+    flex-direction: row;
+}
+
+.orderBtnBox {
+    width: 100%;
+    padding-top: 5vh;
+    display: flex;
+    flex-direction: row;
+}
+
+.orderBtnBox a, .orderBtnBox button {
+    flex-grow: 1;
+    margin: 0 .5vw;
+    height: 5vh;
+    border: 2px solid #174d3d;
+    font-size: calc(1vh + 1vw);
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: .25s;
+}
+
+.cancelBtn {
+    background-color: white;
+    color: #174d3d;
+}
+
+.orderBtn {
+    background-color: #174d3d;
+    color: white;
+}
+
+.cancelBtn:hover, .orderBtn:hover {
+    transform: scale(1.05);
+}
+
+.cancelBtn:active, .orderBtn:active {
+    transform: scale(.95);
+}
+
+.totalBox {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.orderCommodityBox {
+    width: calc(100% - .75vw);
+    margin: calc(.25vh + .25vw) 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.orderCommodityBox[data-canOrder="False"] p {
+    background-color: #ffbbbb;
+}
+
+.orderCommodityBox p {
+    background-color: #eee;
+    font-size: calc(1vh + 1vw);
+    color: black;
+    padding: calc(.25vh + .25vw);
+    display: flex;
+    flex-direction: row;
+}
+
+.orderCommodityBox p span {
+    display: flex;
+    flex-direction: row;
+}
+
+.orderCommodityName {
+    width: 40%;
+    justify-content: flex-start;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.orderCommodityOption {
+    width: 25%;
+    justify-content: flex-start;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.orderCommodityAmount {
+    width: 17.5%;
+    justify-content: space-around;
+}
+
+.orderCommodityPrice {
+    width: 15%;
+    justify-content: center;
+}
+
+.orderCommodityList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 65vh;
+    overflow: scroll;
+}
+
+.orderCommodityList::-webkit-scrollbar {
+    width: .5vw;
+    background-color: #ddd;
+}
+
+.orderCommodityList::-webkit-scrollbar-thumb {
+    background-color: #174d3d;
+}
