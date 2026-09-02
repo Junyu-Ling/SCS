@@ -81,38 +81,27 @@ npm run build
 
 本项目使用 **Cloudflare Pages** 部署（非 Vercel）。推送 `main` 分支后，GitHub Actions 会自动构建并发布。
 
-### Cloudflare Dashboard 构建设置（重要）
+### Cloudflare Dashboard 构建设置
 
-Git 仓库已连到 Cloudflare Pages 时，**推荐只用内置发布，不要自定义 Deploy command**：
+若 **Deploy command 为必填**（Workers 新版 Git 集成），按下面配置：
 
 | 项 | 值 |
 |---|---|
-| Framework preset | Vite（或 None） |
-| **Build command** | `npm run build` |
-| **Build output directory** | `dist` |
-| **Deploy command** | **留空**（必须留空） |
+| Build command | `npm run build` |
+| Build output directory | `dist`（可填，主要供 build 步骤识别） |
+| **Deploy command** | `npx wrangler deploy` |
 
-留空后，Cloudflare 会在 build 完成后**自动上传 `dist`**，不需要 API Token，也不会跑 wrangler。
+`wrangler.toml` 已配置 `[assets] directory = "./dist"`，wrangler 会自动上传静态文件。
 
-**GitHub 仓库名 `SCS` ≠ Cloudflare 项目名。** 仓库叫 SCS 没问题；Cloudflare 侧项目名可以是 `scs` 或 `scls-campus-shop`，互不影响。
+**重要：** 若 Environment variables 里设置了权限不足的 `CLOUDFLARE_API_TOKEN`，Wrangler 会优先用它并导致 `Authentication error [10000]`。**请先删除该变量**，让 Cloudflare 构建环境使用内置凭证；仅本地/ GitHub Actions 手动部署时才需要自行配置 Token。
 
-### 常见报错
+`wrangler.toml` 里的 `name` 须与 Cloudflare 上的 Worker/项目名一致（当前为 `scls-campus-shop`，若你创建时叫 `scs` 请改成相同名字）。
 
-| 现象 | 原因 | 处理 |
-|---|---|---|
-| `Missing entry-point` | Deploy 用了 `npx wrangler deploy` | 删掉 Deploy command，或改为留空 |
-| `does not support "assets"` | `wrangler pages deploy` 与 `[assets]` 冲突 | 已修复；Deploy command 应留空 |
-| `Authentication error [10000]` | Deploy 用了 `npm run deploy`，但 Token 无 Pages 写权限 | **Deploy command 留空**（推荐），或给 Token 加 Account → Cloudflare Pages → Edit |
+### 旧版 Pages（Deploy command 可留空时）
 
-### 仅本地/CI 手动部署时才用 wrangler
-
-```bash
-npm run deploy:cloudflare
-```
-
-需在本机或 GitHub Actions Secrets 配置：
-- `CLOUDFLARE_API_TOKEN` — 权限含 **Account → Cloudflare Pages → Edit**
-- `CLOUDFLARE_ACCOUNT_ID`
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Deploy command | 留空 |
 
 ### 首次配置 Cloudflare（GitHub Actions 自动部署，可选）
 
