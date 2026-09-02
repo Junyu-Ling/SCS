@@ -83,23 +83,43 @@ npm run build
 
 ### Cloudflare Dashboard 构建设置（重要）
 
-在 Pages 项目 → **Settings → Builds & deployments** 中配置：
+Git 仓库已连到 Cloudflare Pages 时，**推荐只用内置发布，不要自定义 Deploy command**：
 
 | 项 | 值 |
 |---|---|
 | Framework preset | Vite（或 None） |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| **Deploy command** | **留空**（推荐），或 `npm run deploy` |
+| **Build command** | `npm run build` |
+| **Build output directory** | `dist` |
+| **Deploy command** | **留空**（必须留空） |
 
-**不要用** `npx wrangler deploy` — 那是 Workers 命令，会导致 `Missing entry-point` 报错。静态站点请用 `wrangler pages deploy`（即 `npm run deploy`）。
+留空后，Cloudflare 会在 build 完成后**自动上传 `dist`**，不需要 API Token，也不会跑 wrangler。
 
-### 首次配置 Cloudflare
+**GitHub 仓库名 `SCS` ≠ Cloudflare 项目名。** 仓库叫 SCS 没问题；Cloudflare 侧项目名可以是 `scs` 或 `scls-campus-shop`，互不影响。
 
-1. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 创建 Pages 项目 `scls-campus-shop`（或直接由 wrangler 首次部署时创建）
+### 常见报错
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| `Missing entry-point` | Deploy 用了 `npx wrangler deploy` | 删掉 Deploy command，或改为留空 |
+| `does not support "assets"` | `wrangler pages deploy` 与 `[assets]` 冲突 | 已修复；Deploy command 应留空 |
+| `Authentication error [10000]` | Deploy 用了 `npm run deploy`，但 Token 无 Pages 写权限 | **Deploy command 留空**（推荐），或给 Token 加 Account → Cloudflare Pages → Edit |
+
+### 仅本地/CI 手动部署时才用 wrangler
+
+```bash
+npm run deploy:cloudflare
+```
+
+需在本机或 GitHub Actions Secrets 配置：
+- `CLOUDFLARE_API_TOKEN` — 权限含 **Account → Cloudflare Pages → Edit**
+- `CLOUDFLARE_ACCOUNT_ID`
+
+### 首次配置 Cloudflare（GitHub Actions 自动部署，可选）
+
+1. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 创建 Pages 项目（名称自定，如 `scs`）
 2. 在 GitHub 仓库 Settings → Secrets 添加：
-   - `CLOUDFLARE_API_TOKEN` — 需 Pages Edit 权限
-   - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare 账户 ID
+   - `CLOUDFLARE_API_TOKEN`
+   - `CLOUDFLARE_ACCOUNT_ID`
 
 ### 本地手动部署
 ```bash
