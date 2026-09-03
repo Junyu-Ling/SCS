@@ -158,10 +158,49 @@ function mergeLocalOnlyProducts(apiProducts: Product[]): Product[] {
   return [...apiProducts, ...extras].sort((a, b) => a.id - b.id);
 }
 
+/** 按商品名覆盖最新标价与更名（接口旧数据不会挡住前台） */
+function applyCatalogOverrides(product: Product): Product {
+  const text = `${product.name?.en || ''} ${product.name?.cn || ''}`.toLowerCase();
+
+  if (/zip-up|拉链卫衣/.test(text)) {
+    return { ...product, price: 160 };
+  }
+  if (/crew neck|圆领卫衣/.test(text)) {
+    return { ...product, price: 140 };
+  }
+  if (/hooded sweatshirt|连帽卫衣|hoodie/.test(text) && !/zip|拉链/.test(text)) {
+    return {
+      ...product,
+      name: { en: 'Hooded Sweatshirt', cn: '连帽卫衣' },
+      price: 140,
+    };
+  }
+  if (/pen set|笔套装/.test(text) || product.id === 4) {
+    return {
+      ...product,
+      name: { en: 'B5 Lined Notebook', cn: 'B5横线笔记本' },
+      description: {
+        en: 'B5 lined notebook with SCLS branding, suitable for class notes.',
+        cn: 'B5横线笔记本，带有SCLS标志，适合课堂记笔记。',
+      },
+      price: 30,
+    };
+  }
+  if (/b5 lined notebook|b5横线/.test(text)) {
+    return { ...product, price: 30 };
+  }
+  if (/morandi/.test(text) || /loose-leaf notebook|loose leaf notebook|活页笔记本/.test(text)) {
+    return { ...product, price: 35 };
+  }
+  return product;
+}
+
 /** 图片处理 + 服饰 Default 占位拆尺码 */
 export function finalizeProduct(product: Product): Product {
-  return normalizeApparelDefaultOnlyOptions(
-    processProductImages(enrichColorVariantsFromLocal(product)),
+  return applyCatalogOverrides(
+    normalizeApparelDefaultOnlyOptions(
+      processProductImages(enrichColorVariantsFromLocal(product)),
+    ),
   );
 }
 
