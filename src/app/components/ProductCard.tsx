@@ -39,7 +39,7 @@ export const ProductCard = React.memo(({
             src={primaryImage}
             fallbackSrc={fallbackImage && fallbackImage !== primaryImage ? fallbackImage : undefined}
             alt={language === 'en' ? product.name.en : product.name.cn}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">

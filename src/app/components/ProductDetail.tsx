@@ -136,13 +136,13 @@ export default function ProductDetail() {
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-12">
-          {/* 主图：单张居中，避免横向滑轨把帽子裁到边上 */}
-          <div className="flex flex-col gap-3">
-          <div className="relative aspect-square bg-white rounded-lg overflow-hidden group border border-gray-100">
+          {/* Image Gallery */}
+          <div className="relative aspect-square w-full bg-white rounded-lg overflow-hidden group border border-gray-100">
             {effectiveImages.length > 0 ? (
               <>
-                <div 
-                  className="absolute inset-0 cursor-pointer"
+                <button
+                  type="button"
+                  className="relative w-full h-full cursor-pointer"
                   onClick={() => {
                     setPreviewImageIndex(currentImageIndex);
                     setImagePreviewOpen(true);
@@ -151,9 +151,10 @@ export default function ProductDetail() {
                   <OptimizedImage
                     src={effectiveImages[currentImageIndex]}
                     alt={`${language === 'en' ? productData.name.en : productData.name.cn} - ${currentImageIndex + 1}`}
-                    className="w-full h-full object-contain object-center scale-[1.12]"
+                    className="w-full h-full object-contain p-2"
+                    priority
                   />
-                </div>
+                </button>
 
                 {/* Navigation Arrows - Only show if multiple images */}
                 {effectiveImages.length > 1 && (
@@ -205,24 +206,6 @@ export default function ProductDetail() {
                 <Package className="w-16 h-16 text-gray-400" />
               </div>
             )}
-          </div>
-          {productData.sizeGuide && (
-            <aside className="w-full rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
-              <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-2">
-                {t('Size', '尺码')}
-              </p>
-              <ul className="space-y-2">
-                {Object.entries(productData.sizeGuide).map(([size, guide]) => (
-                  <li key={size} className="text-xs sm:text-sm text-gray-700 leading-snug">
-                    <span className="font-medium text-gray-900">{size}</span>
-                    <span className="block text-gray-500 mt-0.5">
-                      {language === 'en' ? guide.en : guide.cn}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </aside>
-          )}
           </div>
 
           {/* Product Info */}
