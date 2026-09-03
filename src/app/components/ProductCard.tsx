@@ -33,7 +33,7 @@ export const ProductCard = React.memo(({
       className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer group border border-border"
     >
       {/* Product Image */}
-      <div className="relative aspect-square bg-black overflow-hidden">
+      <div className="relative aspect-square bg-white overflow-hidden">
         {primaryImage ? (
           <OptimizedImage
             src={primaryImage}

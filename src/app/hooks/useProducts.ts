@@ -143,6 +143,7 @@ function enrichColorVariantsFromLocal(product: Product): Product {
   if (local.colorImages) {
     next.images = local.images;
     next.price = local.price;
+    next.sizeGuide = local.sizeGuide ?? product.sizeGuide;
   }
   return next;
 }

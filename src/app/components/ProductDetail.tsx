@@ -137,7 +137,7 @@ export default function ProductDetail() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-12">
           {/* Image Gallery - Slider */}
-          <div className="relative aspect-square bg-black rounded-lg overflow-hidden group">
+          <div className="relative aspect-square bg-white rounded-lg overflow-hidden group border border-gray-100">
             {effectiveImages.length > 0 ? (
               <>
                 {/* Image Slider Container - 点击打开预览 */}
@@ -285,6 +285,16 @@ export default function ProductDetail() {
                         );
                       })}
                     </div>
+                    {productData.sizeGuide && (
+                      <p className="text-sm text-gray-500 mt-3">
+                        {t('Size:', '尺码：')}
+                        <span className="font-medium text-gray-700 ml-1">
+                          {language === 'en'
+                            ? Object.values(productData.sizeGuide)[0].en
+                            : Object.values(productData.sizeGuide)[0].cn}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 ) : (
                   /* 普通尺码选择器 */
