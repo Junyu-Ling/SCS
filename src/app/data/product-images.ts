@@ -57,8 +57,8 @@ export const productImages: Record<number, string[]> = {
   11: [sweatpantsImg1, sweatpantsImg2, sweatpantsImg3],
   12: [frisbeeImg],
   16: [
-    '/images/caps/cap-blue-front.png?v=20260903w',
-    '/images/caps/cap-blue-back.png?v=20260903w',
+    '/images/caps/cap-blue-front.png?v=20260903side',
+    '/images/caps/cap-blue-back.png?v=20260903side',
   ],
 };
 

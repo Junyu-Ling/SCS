@@ -136,8 +136,9 @@ export default function ProductDetail() {
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-12">
-          {/* Image Gallery - Slider */}
-          <div className="relative aspect-square bg-white rounded-lg overflow-hidden group border border-gray-100">
+          {/* Image Gallery + 旁边尺码 */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div className="relative aspect-[4/3] flex-1 min-w-0 bg-white rounded-lg overflow-hidden group border border-gray-100">
             {effectiveImages.length > 0 ? (
               <>
                 {/* Image Slider Container - 点击打开预览 */}
@@ -201,7 +202,7 @@ export default function ProductDetail() {
                           setCurrentImageIndex(index);
                         }}
                         className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all touch-manipulation ${
-                          index === currentImageIndex ? 'bg-white w-4 sm:w-6' : 'bg-white/50'
+                          index === currentImageIndex ? 'bg-gray-800 w-4 sm:w-6' : 'bg-gray-300'
                         }`}
                         aria-label={`Go to image ${index + 1}`}
                       />
@@ -214,6 +215,24 @@ export default function ProductDetail() {
                 <Package className="w-16 h-16 text-gray-400" />
               </div>
             )}
+          </div>
+          {productData.sizeGuide && (
+            <aside className="sm:w-40 shrink-0 rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
+              <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-2">
+                {t('Size', '尺码')}
+              </p>
+              <ul className="space-y-2">
+                {Object.entries(productData.sizeGuide).map(([size, guide]) => (
+                  <li key={size} className="text-xs sm:text-sm text-gray-700 leading-snug">
+                    <span className="font-medium text-gray-900">{size}</span>
+                    <span className="block text-gray-500 mt-0.5">
+                      {language === 'en' ? guide.en : guide.cn}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          )}
           </div>
 
           {/* Product Info */}
