@@ -41,7 +41,7 @@ import looseLeafImg2 from 'figma:asset/fb286fefa9238350a7ffcbeae8d165c1f8e87fc9.
 import looseLeafImg3 from 'figma:asset/d343d9da90100a6b5cc97428e040b9643c7ce221.png';
 
 // Helper function to get local image URL from public folder
-export const getLocalImageUrl = (path: string) => `/images/${path}?v=20260903`;
+export const getLocalImageUrl = (path: string) => `/images/${path}?v=20260903c`;
 
 // Keep GitHub URL as fallback
 const GITHUB_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Miyeon-0131/SCS/main';

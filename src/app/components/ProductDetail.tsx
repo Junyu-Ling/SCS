@@ -137,7 +137,7 @@ export default function ProductDetail() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-12">
           {/* Image Gallery - Slider */}
-          <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden group">
+          <div className="relative aspect-square bg-black rounded-lg overflow-hidden group">
             {effectiveImages.length > 0 ? (
               <>
                 {/* Image Slider Container - 点击打开预览 */}
@@ -157,7 +157,7 @@ export default function ProductDetail() {
                         <OptimizedImage
                           src={image}
                           alt={`${language === 'en' ? productData.name.en : productData.name.cn} - ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       </div>
                     ))}

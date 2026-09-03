@@ -334,8 +334,8 @@ const INITIAL_PRODUCTS: Product[] = [
     },
     price: 30.0,
     images: [
-      '/images/caps/cap-blue-front.png?v=20260903',
-      '/images/caps/cap-blue-back.png?v=20260903',
+      '/images/caps/cap-blue-front.png?v=20260903c',
+      '/images/caps/cap-blue-back.png?v=20260903c',
     ],
     category: 'apparel',
     tags: ['apparel', 'new'],
@@ -347,20 +347,20 @@ const INITIAL_PRODUCTS: Product[] = [
     },
     colorImages: {
       Blue: [
-        '/images/caps/cap-blue-front.png?v=20260903',
-        '/images/caps/cap-blue-back.png?v=20260903',
+        '/images/caps/cap-blue-front.png?v=20260903c',
+        '/images/caps/cap-blue-back.png?v=20260903c',
       ],
       'Dark Green': [
-        '/images/caps/cap-darkgreen-front.png?v=20260903',
-        '/images/caps/cap-darkgreen-back.png?v=20260903',
+        '/images/caps/cap-darkgreen-front.png?v=20260903c',
+        '/images/caps/cap-darkgreen-back.png?v=20260903c',
       ],
       Khaki: [
-        '/images/caps/cap-khaki-front.png?v=20260903',
-        '/images/caps/cap-khaki-back.png?v=20260903',
+        '/images/caps/cap-khaki-front.png?v=20260903c',
+        '/images/caps/cap-khaki-back.png?v=20260903c',
       ],
       Teal: [
-        '/images/caps/cap-teal-front.png?v=20260903',
-        '/images/caps/cap-teal-back.png?v=20260903',
+        '/images/caps/cap-teal-front.png?v=20260903c',
+        '/images/caps/cap-teal-back.png?v=20260903c',
       ],
     },
     colorLabels: {
