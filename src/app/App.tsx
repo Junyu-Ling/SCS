@@ -37,6 +37,7 @@ import { CartProvider } from './contexts/CartContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { Toaster } from './components/ui/sonner';
 import { useImagePreloader } from './hooks/useImagePreloader';
+import VisitorStats from './components/VisitorStats';
 
 /**
  * 错误边界组件
@@ -220,6 +221,7 @@ export default function App() {
                   <Router />
                 </main>
                 <Cart />
+                <VisitorStats />
                 <Toaster position="top-center" />
               </div>
             </ErrorBoundary>

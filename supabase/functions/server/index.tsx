@@ -353,6 +353,67 @@ app.get(`${BASE_PATH}/health`, (c) => {
   return c.json({ status: "ok" });
 });
 
+const ONLINE_TTL_MS = 90_000;
+const VISITOR_ID_RE = /^[a-zA-Z0-9-]{8,64}$/;
+
+async function readPresence() {
+  const now = Date.now();
+  const totalRaw = await kv.get("stats:total_visitors");
+  const total = typeof totalRaw === "number" ? totalRaw : Number(totalRaw) || 0;
+  let online = (await kv.get("stats:online")) as Record<string, number> | null;
+  if (!online || typeof online !== "object" || Array.isArray(online)) online = {};
+  let changed = false;
+  for (const [id, ts] of Object.entries(online)) {
+    if (now - Number(ts) > ONLINE_TTL_MS) {
+      delete online[id];
+      changed = true;
+    }
+  }
+  if (changed) await kv.set("stats:online", online);
+  return { total, online: Object.keys(online).length };
+}
+
+app.get(`${BASE_PATH}/stats/visitors`, async (c) => {
+  try {
+    return c.json(await readPresence());
+  } catch (error) {
+    console.error("[STATS] read error:", error);
+    return c.json({ total: 0, online: 0 }, 200);
+  }
+});
+
+app.post(`${BASE_PATH}/stats/heartbeat`, async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const visitorId = typeof body?.visitorId === "string" ? body.visitorId.trim() : "";
+    if (!VISITOR_ID_RE.test(visitorId)) {
+      return c.json({ error: "Invalid visitorId" }, 400);
+    }
+
+    const now = Date.now();
+    let total = Number(await kv.get("stats:total_visitors")) || 0;
+    const seen = await kv.get(`stats:seen:${visitorId}`);
+    if (!seen) {
+      await kv.set(`stats:seen:${visitorId}`, 1);
+      total += 1;
+      await kv.set("stats:total_visitors", total);
+    }
+
+    let online = (await kv.get("stats:online")) as Record<string, number> | null;
+    if (!online || typeof online !== "object" || Array.isArray(online)) online = {};
+    online[visitorId] = now;
+    for (const [id, ts] of Object.entries(online)) {
+      if (now - Number(ts) > ONLINE_TTL_MS) delete online[id];
+    }
+    await kv.set("stats:online", online);
+
+    return c.json({ total, online: Object.keys(online).length });
+  } catch (error) {
+    console.error("[STATS] heartbeat error:", error);
+    return c.json({ total: 0, online: 0 }, 200);
+  }
+});
+
 /**
  * GET /debug/products - 调试端点：显示所有产品数据
  * 临时调试路由，用于检查 KV Store 中的商品数据
