@@ -91,7 +91,7 @@ npm run build
 | Build output directory | `dist`（可填，主要供 build 步骤识别） |
 | **Deploy command** | `npx wrangler deploy` |
 
-`wrangler.toml` 已配置 `[assets] directory = "./dist"`，wrangler 会自动上传静态文件。
+`wrangler.toml` 已配置 `[assets] directory = "./dist"`，wrangler 会自动上传静态文件。SPA 回退由 `not_found_handling = "single-page-application"` 处理，**不要再放 `public/_redirects`**（`/* /index.html 200` 会被判定为无限循环而部署失败）。
 
 **重要：** 若 Environment variables 里设置了权限不足的 `CLOUDFLARE_API_TOKEN`，Wrangler 会优先用它并导致 `Authentication error [10000]`。**请先删除该变量**，让 Cloudflare 构建环境使用内置凭证；仅本地/ GitHub Actions 手动部署时才需要自行配置 Token。
 

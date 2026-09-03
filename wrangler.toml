@@ -1,6 +1,7 @@
 # Cloudflare Workers 静态站点 — SCLS Campus Shop (Vite SPA)
 # Git 连 Workers 时 Deploy command 填: npx wrangler deploy
-name = "scls-campus-shop"
+# name 必须与 Cloudflare 上的 Worker 名一致
+name = "scs"
 compatibility_date = "2024-09-01"
 
 [assets]
