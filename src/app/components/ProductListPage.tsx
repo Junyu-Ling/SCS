@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useProfile } from '../contexts/ProfileContext';
-import { useProducts, getProductsByCategory, getProductsByTag, Product, clearProductsCache } from '../hooks/useProducts';
+import { useProducts, getProductsByCategory, getProductsByTag, compareProductsByNewFirst, Product, clearProductsCache } from '../hooks/useProducts';
 import { useInventory } from '../hooks/useInventory';
 import { Package, Loader2 } from 'lucide-react';
 import { ProductCard } from './ProductCard';
@@ -58,11 +58,8 @@ export default function ProductListPage() {
       result = products;
     }
 
-    // ✅ 按英文名字母排序，ID 作为稳定 tiebreaker，避免顺序频繁变动
-    return [...result].sort((a, b) => {
-      const nameCompare = a.name.en.localeCompare(b.name.en);
-      return nameCompare !== 0 ? nameCompare : a.id - b.id;
-    });
+    // New 排在每个类别最前，其余按英文名稳定排序
+    return [...result].sort(compareProductsByNewFirst);
   }, [products, filterType]);
 
   // ✅ 合并 hash change 监听逻辑

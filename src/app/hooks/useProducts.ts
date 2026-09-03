@@ -510,15 +510,21 @@ export function useProduct(id: number) {
   return { product, loading, error };
 }
 
+/** New 商品排在同类最前，其余按英文名，ID 作为稳定次序 */
+export function compareProductsByNewFirst(a: Product, b: Product): number {
+  const aNew = a.tags?.includes('new') ? 0 : 1;
+  const bNew = b.tags?.includes('new') ? 0 : 1;
+  if (aNew !== bNew) return aNew - bNew;
+  const nameCompare = a.name.en.localeCompare(b.name.en);
+  return nameCompare !== 0 ? nameCompare : a.id - b.id;
+}
+
 /**
  * 辅助函数：按分类筛选商品
  */
 export function getProductsByCategory(products: Product[], category: string): Product[] {
   return products.filter(product => product.category === category)
-    .sort((a, b) => {
-      const nameCompare = a.name.en.localeCompare(b.name.en);
-      return nameCompare !== 0 ? nameCompare : a.id - b.id;
-    });
+    .sort(compareProductsByNewFirst);
 }
 
 /**
@@ -526,10 +532,7 @@ export function getProductsByCategory(products: Product[], category: string): Pr
  */
 export function getProductsByTag(products: Product[], tag: string): Product[] {
   return products.filter(product => product.tags.includes(tag))
-    .sort((a, b) => {
-      const nameCompare = a.name.en.localeCompare(b.name.en);
-      return nameCompare !== 0 ? nameCompare : a.id - b.id;
-    });
+    .sort(compareProductsByNewFirst);
 }
 
 /**
