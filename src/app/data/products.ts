@@ -107,14 +107,14 @@ export const products: Product[] = [
   {
     id: 2,
     name: {
-      en: 'Hooded Sweatshirt',
-      cn: '连帽卫衣',
+      en: 'SCLS Hoodie',
+      cn: 'SCLS卫衣',
     },
     description: {
       en: 'Warm and cozy hoodie with SCLS logo, perfect for cooler weather.',
       cn: '温暖舒适的连帽卫衣，印有SCLS标志，适合凉爽天气。',
     },
-    price: 140.0,
+    price: 120.0,
     images: [
       hoodieImg1,
       hoodieImg2,
@@ -157,14 +157,14 @@ export const products: Product[] = [
   {
     id: 4,
     name: {
-      en: 'B5 Lined Notebook',
-      cn: 'B5横线笔记本',
+      en: 'SCLS Pen Set',
+      cn: 'SCLS笔套装',
     },
     description: {
-      en: 'B5 lined notebook with SCLS branding, suitable for class notes.',
-      cn: 'B5横线笔记本，带有SCLS标志，适合课堂记笔记。',
+      en: 'Set of premium pens with SCLS logo, smooth writing experience.',
+      cn: '高级SCLS标志笔套装，书写流畅。',
     },
-    price: 30.0,
+    price: 15.0,
     images: [
       notebook2Img1,
       notebook2Img2,
@@ -333,60 +333,6 @@ export const products: Product[] = [
       M: { en: 'Size M: Waist 70cm, Length 100cm', cn: 'M码：腰围70cm，裤长100cm' },
       L: { en: 'Size L: Waist 74cm, Length 102cm', cn: 'L码：腰围74cm，裤长102cm' },
       XL: { en: 'Size XL: Waist 78cm, Length 104cm', cn: 'XL码：腰围78cm，裤长104cm' },
-    },
-  },
-  {
-    id: 13,
-    name: {
-      en: 'Crew Neck Sweatshirt',
-      cn: '圆领卫衣',
-    },
-    description: {
-      en: 'Classic crew neck sweatshirt with SCLS logo, simple and stylish.',
-      cn: '经典SCLS圆领卫衣，简约时尚。',
-    },
-    price: 140.0,
-    images: [],
-    category: 'apparel',
-    tags: ['apparel', 'new'],
-    options: {
-      S: 7,
-      M: 3,
-      L: 1,
-      XL: 1,
-    },
-    sizeGuide: {
-      S: { en: 'Size S: Chest 100cm, Length 64cm', cn: 'S码：胸围100cm，衣长64cm' },
-      M: { en: 'Size M: Chest 104cm, Length 66cm', cn: 'M码：胸围104cm，衣长66cm' },
-      L: { en: 'Size L: Chest 108cm, Length 68cm', cn: 'L码：胸围108cm，衣长68cm' },
-      XL: { en: 'Size XL: Chest 112cm, Length 70cm', cn: 'XL码：胸围112cm，衣长70cm' },
-    },
-  },
-  {
-    id: 14,
-    name: {
-      en: 'Hooded Zip-up Sweatshirt',
-      cn: '连帽拉链卫衣',
-    },
-    description: {
-      en: 'Convenient zip-up hoodie with SCLS logo, easy to wear.',
-      cn: 'SCLS连帽拉链卫衣，穿脱方便。',
-    },
-    price: 160.0,
-    images: [],
-    category: 'apparel',
-    tags: ['apparel', 'new'],
-    options: {
-      S: 8,
-      M: 4,
-      L: 3,
-      XL: 9,
-    },
-    sizeGuide: {
-      S: { en: 'Size S: Chest 100cm, Length 64cm', cn: 'S码：胸围100cm，衣长64cm' },
-      M: { en: 'Size M: Chest 104cm, Length 66cm', cn: 'M码：胸围104cm，衣长66cm' },
-      L: { en: 'Size L: Chest 108cm, Length 68cm', cn: 'L码：胸围108cm，衣长68cm' },
-      XL: { en: 'Size XL: Chest 112cm, Length 70cm', cn: 'XL码：胸围112cm，衣长70cm' },
     },
   },
   {

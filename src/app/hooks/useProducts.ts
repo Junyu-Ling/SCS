@@ -158,7 +158,7 @@ function mergeLocalOnlyProducts(apiProducts: Product[]): Product[] {
   return [...apiProducts, ...extras].sort((a, b) => a.id - b.id);
 }
 
-/** 按商品名覆盖最新标价与更名（接口旧数据不会挡住前台） */
+/** 只改已有商品的价格，不改名、不加新商品 */
 function applyCatalogOverrides(product: Product): Product {
   const text = `${product.name?.en || ''} ${product.name?.cn || ''}`.toLowerCase();
 
@@ -168,25 +168,10 @@ function applyCatalogOverrides(product: Product): Product {
   if (/crew neck|圆领卫衣/.test(text)) {
     return { ...product, price: 140 };
   }
-  if (/hooded sweatshirt|连帽卫衣|hoodie/.test(text) && !/zip|拉链/.test(text)) {
-    return {
-      ...product,
-      name: { en: 'Hooded Sweatshirt', cn: '连帽卫衣' },
-      price: 140,
-    };
+  if (/hooded sweatshirt|连帽卫衣/.test(text) && !/zip|拉链/.test(text)) {
+    return { ...product, price: 140 };
   }
-  if (/pen set|笔套装/.test(text) || product.id === 4) {
-    return {
-      ...product,
-      name: { en: 'B5 Lined Notebook', cn: 'B5横线笔记本' },
-      description: {
-        en: 'B5 lined notebook with SCLS branding, suitable for class notes.',
-        cn: 'B5横线笔记本，带有SCLS标志，适合课堂记笔记。',
-      },
-      price: 30,
-    };
-  }
-  if (/b5 lined notebook|b5横线/.test(text)) {
+  if (/b5 lined notebook|b5横线|pen set|笔套装/.test(text)) {
     return { ...product, price: 30 };
   }
   if (/morandi/.test(text) || /loose-leaf notebook|loose leaf notebook|活页笔记本/.test(text)) {

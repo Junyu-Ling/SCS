@@ -82,8 +82,8 @@ const INITIAL_PRODUCTS: Product[] = [
   {
     id: 2,
     name: {
-      en: 'Hooded Sweatshirt',
-      cn: '连帽卫衣',
+      en: 'SCLS Hooded Sweatshirt',
+      cn: 'SCLS连帽卫衣',
     },
     description: {
       en: 'Warm and cozy hoodie with SCLS logo, perfect for cooler weather.',
@@ -109,8 +109,8 @@ const INITIAL_PRODUCTS: Product[] = [
   {
     id: 13,
     name: {
-      en: 'Crew Neck Sweatshirt',
-      cn: '圆领卫衣',
+      en: 'SCLS Crew Neck Sweatshirt',
+      cn: 'SCLS圆领卫衣',
     },
     description: {
       en: 'Classic crew neck sweatshirt with SCLS logo, simple and stylish.',
@@ -136,8 +136,8 @@ const INITIAL_PRODUCTS: Product[] = [
   {
     id: 14,
     name: {
-      en: 'Hooded Zip-up Sweatshirt',
-      cn: '连帽拉链卫衣',
+      en: 'SCLS Hooded Zip-up Sweatshirt',
+      cn: 'SCLS连帽拉链卫衣',
     },
     description: {
       en: 'Convenient zip-up hoodie with SCLS logo, easy to wear.',
@@ -205,14 +205,14 @@ const INITIAL_PRODUCTS: Product[] = [
   {
     id: 4,
     name: {
-      en: 'B5 Lined Notebook',
-      cn: 'B5横线笔记本',
+      en: 'SCLS Pen Set',
+      cn: 'SCLS笔套装',
     },
     description: {
-      en: 'B5 lined notebook with SCLS branding, suitable for class notes.',
-      cn: 'B5横线笔记本，带有SCLS标志，适合课堂记笔记。',
+      en: 'Set of premium pens with SCLS logo, smooth writing experience.',
+      cn: '高级SCLS标志笔套装书写流畅。',
     },
-    price: 30.0,
+    price: 15.0,
     images: [], // 图片在前端
     category: 'stationery',
     tags: ['stationery'],
