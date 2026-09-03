@@ -41,7 +41,7 @@ import looseLeafImg2 from 'figma:asset/fb286fefa9238350a7ffcbeae8d165c1f8e87fc9.
 import looseLeafImg3 from 'figma:asset/d343d9da90100a6b5cc97428e040b9643c7ce221.png';
 
 // Helper function to get local image URL from public folder
-export const getLocalImageUrl = (path: string) => `/images/${path}`;
+export const getLocalImageUrl = (path: string) => `/images/${path}?v=20260903`;
 
 // Keep GitHub URL as fallback
 const GITHUB_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Miyeon-0131/SCS/main';
@@ -346,7 +346,7 @@ export const products: Product[] = [
       en: 'SCLS signature baseball cap featuring the iconic SCLS logo on the front and three charming bird mascots embroidered on the back. Made from premium cotton, lightweight and breathable — perfect for outdoor activities and daily campus wear. Available in four exclusive colors.',
       cn: 'SCLS签名棒球帽，正面印有标志性SCLS Logo，后面绣有三只可爱小鸟吉祥物。优质棉质材料，轻盈透气，适合户外活动和日常校园穿着。提供四种专属配色。',
     },
-    price: 80.0,
+    price: 30.0,
     images: [
       getLocalImageUrl('caps/cap-blue-front.png'),
       getLocalImageUrl('caps/cap-blue-back.png'),

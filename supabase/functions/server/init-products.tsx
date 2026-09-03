@@ -332,10 +332,10 @@ const INITIAL_PRODUCTS: Product[] = [
       en: 'SCLS signature baseball cap featuring the iconic SCLS logo on the front and three charming bird mascots embroidered on the back. Made from premium cotton, lightweight and breathable — perfect for outdoor activities and daily campus wear. Available in four exclusive colors.',
       cn: 'SCLS签名棒球帽，正面印有标志性SCLS Logo，后面绣有三只可爱小鸟吉祥物。优质棉质材料，轻盈透气，适合户外活动和日常校园穿着。提供四种专属配色。',
     },
-    price: 80.0,
+    price: 30.0,
     images: [
-      '/images/caps/cap-blue-front.png',
-      '/images/caps/cap-blue-back.png',
+      '/images/caps/cap-blue-front.png?v=20260903',
+      '/images/caps/cap-blue-back.png?v=20260903',
     ],
     category: 'apparel',
     tags: ['apparel', 'new'],
@@ -347,20 +347,20 @@ const INITIAL_PRODUCTS: Product[] = [
     },
     colorImages: {
       Blue: [
-        '/images/caps/cap-blue-front.png',
-        '/images/caps/cap-blue-back.png',
+        '/images/caps/cap-blue-front.png?v=20260903',
+        '/images/caps/cap-blue-back.png?v=20260903',
       ],
       'Dark Green': [
-        '/images/caps/cap-darkgreen-front.png',
-        '/images/caps/cap-darkgreen-back.png',
+        '/images/caps/cap-darkgreen-front.png?v=20260903',
+        '/images/caps/cap-darkgreen-back.png?v=20260903',
       ],
       Khaki: [
-        '/images/caps/cap-khaki-front.png',
-        '/images/caps/cap-khaki-back.png',
+        '/images/caps/cap-khaki-front.png?v=20260903',
+        '/images/caps/cap-khaki-back.png?v=20260903',
       ],
       Teal: [
-        '/images/caps/cap-teal-front.png',
-        '/images/caps/cap-teal-back.png',
+        '/images/caps/cap-teal-front.png?v=20260903',
+        '/images/caps/cap-teal-back.png?v=20260903',
       ],
     },
     colorLabels: {

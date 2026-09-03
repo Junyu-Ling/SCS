@@ -131,15 +131,20 @@ function normalizeApparelDefaultOnlyOptions(product: Product): Product {
   };
 }
 
-/** 用本地种子补齐颜色变体字段（API 旧数据可能没有） */
+/** 用本地种子补齐颜色变体；帽子等静态资源以仓库最新图和价格为准 */
 function enrichColorVariantsFromLocal(product: Product): Product {
   const local = localProducts.find((p) => p.id === product.id);
   if (!local) return product;
-  return {
+  const next: Product = {
     ...product,
-    colorImages: product.colorImages ?? local.colorImages,
-    colorLabels: product.colorLabels ?? local.colorLabels,
+    colorImages: local.colorImages ?? product.colorImages,
+    colorLabels: local.colorLabels ?? product.colorLabels,
   };
+  if (local.colorImages) {
+    next.images = local.images;
+    next.price = local.price;
+  }
+  return next;
 }
 
 /** 合并 API 列表中缺失的本地种子商品（如新上架帽子尚未写入 KV） */

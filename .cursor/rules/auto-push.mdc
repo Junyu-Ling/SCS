@@ -1,0 +1,14 @@
+---
+description: After completing requested code or asset changes, commit and push to GitHub automatically.
+alwaysApply: true
+---
+
+# Auto push after changes
+
+Whenever you finish implementing or fixing something the user asked for:
+
+1. Stage the relevant files
+2. Create a concise commit (why, not what)
+3. Push to `origin` on the current branch (`main`)
+
+Do this without waiting for the user to say "push". Do not skip hooks. Do not force-push.
