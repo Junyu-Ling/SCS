@@ -454,8 +454,8 @@ app.post(`${BASE_PATH}/debug/fix-stationery`, async (c) => {
       {
         id: 4,
         name: {
-          en: 'SCLS Pen Set',
-          cn: 'SCLS笔套装',
+          en: 'B5 Lined Notebook',
+          cn: 'B5横线笔记本',
         },
         description: {
           en: 'Set of premium pens with SCLS logo, smooth writing experience.',

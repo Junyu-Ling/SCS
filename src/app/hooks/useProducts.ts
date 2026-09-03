@@ -171,8 +171,12 @@ function applyCatalogOverrides(product: Product): Product {
   if (/hooded sweatshirt|连帽卫衣/.test(text) && !/zip|拉链/.test(text)) {
     return { ...product, price: 140 };
   }
-  if (/b5 lined notebook|b5横线|pen set|笔套装/.test(text)) {
-    return { ...product, price: 30 };
+  if (/b5 lined notebook|b5横线|pen set|笔套装/.test(text) || product.id === 4) {
+    return {
+      ...product,
+      name: { en: 'B5 Lined Notebook', cn: 'B5横线笔记本' },
+      price: 30,
+    };
   }
   if (/morandi/.test(text) || /loose-leaf notebook|loose leaf notebook|活页笔记本/.test(text)) {
     return { ...product, price: 35 };
