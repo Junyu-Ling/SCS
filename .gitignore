@@ -25,6 +25,5 @@ Thumbs.db
 tmp/
 *.local
 
-# Wrangler
-.wrangler/
-.dev.vars
+# Vercel
+.vercel/

@@ -77,48 +77,20 @@ npm run dev
 npm run build
 ```
 
-## 部署（Cloudflare Pages）
+## 部署（Vercel）
 
-本项目使用 **Cloudflare Pages** 部署（非 Vercel）。推送 `main` 分支后，GitHub Actions 会自动构建并发布。
+本项目使用 **Vercel** 部署 Vite SPA。将 GitHub 仓库连接到 Vercel 后，推送 `main` 会自动构建发布。
 
-### Cloudflare Dashboard 构建设置
-
-若 **Deploy command 为必填**（Workers 新版 Git 集成），按下面配置：
+### Vercel 项目设置
 
 | 项 | 值 |
 |---|---|
-| Build command | `npm run build` |
-| Build output directory | `dist`（可填，主要供 build 步骤识别） |
-| **Deploy command** | `npx wrangler deploy` |
+| Framework Preset | Vite |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+| Install Command | `npm install` |
 
-`wrangler.toml` 已配置 `[assets] directory = "./dist"`，wrangler 会自动上传静态文件。SPA 回退由 `not_found_handling = "single-page-application"` 处理，**不要再放 `public/_redirects`**（`/* /index.html 200` 会被判定为无限循环而部署失败）。
-
-**重要：** 若 Environment variables 里设置了权限不足的 `CLOUDFLARE_API_TOKEN`，Wrangler 会优先用它并导致 `Authentication error [10000]`。**请先删除该变量**，让 Cloudflare 构建环境使用内置凭证；仅本地/ GitHub Actions 手动部署时才需要自行配置 Token。
-
-`wrangler.toml` 里的 `name` 须与 Cloudflare 上的 Worker/项目名一致（当前为 `scls-campus-shop`，若你创建时叫 `scs` 请改成相同名字）。
-
-### 旧版 Pages（Deploy command 可留空时）
-
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Deploy command | 留空 |
-
-### 首次配置 Cloudflare（GitHub Actions 自动部署，可选）
-
-1. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 创建 Pages 项目（名称自定，如 `scs`）
-2. 在 GitHub 仓库 Settings → Secrets 添加：
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID`
-
-### 本地手动部署
-```bash
-npm run deploy:cloudflare
-```
-
-### 本地预览 Cloudflare Pages 构建结果
-```bash
-npm run pages:dev
-```
+`vercel.json` 已配置 SPA 回退（未知路径落到 `index.html`）以及静态资源缓存头。应用本身使用 hash 路由，直接访问深层路径也会回到首页再由前端接管。
 
 ## GitHub集成
 
