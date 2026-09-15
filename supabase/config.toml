@@ -1,0 +1,9 @@
+project_id = "pystrfychhatzhzsljhf"
+
+# 线上函数名必须是 make-server-c4f5ade4：index.tsx 里的 BASE_PATH 和前端请求 URL
+# 都依赖这个前缀，而源码放在 functions/server/，因此这里显式指定 entrypoint。
+# 路由自己用 getUser() 校验 token，公开路由（验证码、商品、访客统计）需要免 JWT 访问。
+[functions.make-server-c4f5ade4]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/server/index.tsx"
