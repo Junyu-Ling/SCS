@@ -92,6 +92,36 @@ npm run build
 
 `vercel.json` 已配置 SPA 回退（未知路径落到 `index.html`）以及静态资源缓存头。应用本身使用 hash 路由，直接访问深层路径也会回到首页再由前端接管。
 
+## 账号体系（邮箱绑定，无密码）
+
+站点没有传统注册。用户在 `#/login` 输入学校邮箱（`@stu.scls-sh.org` / `@scls-sh.org`），收到 8 位验证码后即完成登录：
+
+1. 首次绑定会自动创建账号，并要求补全姓名、身份、班级
+2. 之后登录态长期保留在浏览器，换设备或会话过期才需要再收一次验证码
+3. 验证码由 Supabase Auth 的 Email OTP 发送，模板在 Supabase Dashboard → Authentication → Email Templates 的 **Magic Link** 里配置，正文需包含 `{{ .Token }}`
+
+相关接口（Edge Function `make-server-c4f5ade4`）：
+
+| 路由 | 用途 |
+|---|---|
+| `POST /send-verification-code` | 发送验证码，返回 `isNewUser` |
+| `POST /verify-code` | 校验验证码，返回 session 与 `needsProfile` |
+| `POST /bind-profile` | 首次绑定后补全资料 |
+
+## 站内联系我们（邮件送达真实邮箱）
+
+用户在 `#/chat` 发消息后，后端会通过 Resend 给管理员邮箱发一封通知邮件，`Reply-To` 设为用户绑定的邮箱 —— 在邮箱里直接点「回复」就会回到该用户。
+
+需要在 Supabase Edge Function 的 Secrets 里配置：
+
+| 变量 | 说明 |
+|---|---|
+| `RESEND_API_KEY` | Resend API Key，未设置则完全不发邮件 |
+| `MAIL_FROM` | 已在 Resend **验证过域名**的发件地址，例如 `SCLS Shop <help@sclscampus.shop>` |
+| `CONTACT_INBOX` | 可选。收信邮箱，逗号分隔；留空则用代码里的管理员邮箱列表 |
+
+**`MAIL_FROM` 未配置时**，Resend 仍处于沙箱状态（发件人回退到 `onboarding@resend.dev`），只能投递到 Resend 账号本人的邮箱，所有通知会被重定向过去并在正文标注 `[SANDBOX]`。要让邮件真正送到学校邮箱，必须先在 Resend 验证域名并设置 `MAIL_FROM`。
+
 ## GitHub集成
 
 ### 初始化仓库

@@ -225,7 +225,7 @@ export default function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => window.location.hash = '/chat'}>
                   <MessageSquare className="mr-2 h-4 w-4" />
-                  <span>{t('Customer Service', '在线客服')}</span>
+                  <span>{t('Contact Us', '联系我们')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => window.location.hash = '/orders'}>
                   <Package className="mr-2 h-4 w-4" />

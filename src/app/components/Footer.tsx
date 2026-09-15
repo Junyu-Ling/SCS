@@ -35,6 +35,12 @@ export default function Footer() {
             {t('Update History', '更新记录')}
           </a>
         </div>
+
+        <div className="flex items-center justify-center text-white">
+          <a href="#/chat" className="text-white font-bold hover:underline">
+            {t('Contact Us', '联系我们')}
+          </a>
+        </div>
       </div>
     </footer>
   );

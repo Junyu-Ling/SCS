@@ -44,8 +44,8 @@ export default function TermsOfUsePage() {
           </h2>
           <p className="text-sm sm:text-base leading-relaxed text-gray-300 break-words">
             {t(
-              'To reserve commodities on our website, you must create an account. You are responsible for maintaining the confidentiality of your account information, including your password. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.',
-              '要在我们的网站上预订商品，您必须创建一个账户。您有责任对您的账户信息（包括密码）保密。您同意在发现账户被未经授权使用或任何其他安全漏洞时立即通知我们。'
+              'To reserve commodities on our website, you must bind your school email address. We sign you in with a one-time code sent to that address, so there is no password to remember. You are responsible for keeping access to your school mailbox secure, and you agree to notify us immediately of any unauthorized use of your account.',
+              '要在我们的网站上预订商品，您必须绑定学校邮箱。我们通过发送到该邮箱的一次性验证码为您登录，因此不需要设置密码。您有责任保护自己学校邮箱的访问安全，并同意在发现账户被未经授权使用时立即通知我们。'
             )}
           </p>
         </section>

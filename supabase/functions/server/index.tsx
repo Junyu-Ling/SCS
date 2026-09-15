@@ -151,8 +151,99 @@ function adminCanEditAboutContent(email: string | undefined | null, allowlist: s
   return allowlist.includes(e);
 }
 
-// ⚠️ Resend 测试模式允许的接收邮箱
-const ALLOWED_TEST_EMAIL = 'lingjunyu20081201@gmail.com';
+// 只接受学校邮箱绑定
+const ALLOWED_EMAIL_DOMAINS = ['@stu.scls-sh.org', '@scls-sh.org'];
+
+function normalizeEmail(raw: unknown): string {
+  return typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+}
+
+function isSchoolEmail(email: string): boolean {
+  return ALLOWED_EMAIL_DOMAINS.some((domain) => email.endsWith(domain));
+}
+
+// Resend 未验证自定义域名时只能投递到账号本人的邮箱
+const SANDBOX_FROM = 'SCLS Shop <onboarding@resend.dev>';
+const SANDBOX_RECIPIENT = 'lingjunyu20081201@gmail.com';
+
+/**
+ * 邮件投递配置
+ * 配好 MAIL_FROM（已在 Resend 验证的域名发件地址）后，邮件才会真正投递给管理员；
+ * 否则回退到 Resend 沙箱发件人，并把收件人重定向到账号本人邮箱。
+ */
+function getMailConfig() {
+  const from = Deno.env.get('MAIL_FROM')?.trim();
+  const isSandbox = !from;
+  const configuredInbox = (Deno.env.get('CONTACT_INBOX') ?? '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const inbox = configuredInbox.length > 0 ? configuredInbox : ADMIN_EMAILS;
+
+  return {
+    from: from || SANDBOX_FROM,
+    isSandbox,
+    recipients: isSandbox ? [SANDBOX_RECIPIENT] : inbox,
+    intendedRecipients: inbox,
+  };
+}
+
+/**
+ * 通过 Resend 发送邮件
+ * @param replyTo - 设为用户绑定邮箱时，管理员在邮箱里直接「回复」即可回到用户
+ */
+async function sendMail(options: { subject: string; html: string; replyTo?: string }) {
+  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+  if (!RESEND_API_KEY) {
+    console.log('[EMAIL] RESEND_API_KEY not set, skipping email');
+    return;
+  }
+
+  const { from, isSandbox, recipients, intendedRecipients } = getMailConfig();
+
+  if (isSandbox) {
+    console.log('[EMAIL] ⚠️ MAIL_FROM not configured, Resend is still in sandbox mode');
+    console.log(`[EMAIL] Redirecting to ${SANDBOX_RECIPIENT} instead of ${intendedRecipients.join(', ')}`);
+  }
+
+  const html = isSandbox
+    ? `${options.html}<p style="color:#b91c1c;font-size:12px;">[SANDBOX] 正式收件人：${intendedRecipients.join(', ')}。请在 Resend 验证域名并设置 MAIL_FROM。</p>`
+    : options.html;
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to: recipients,
+        subject: options.subject,
+        html,
+        ...(options.replyTo ? { reply_to: options.replyTo } : {}),
+      }),
+    });
+
+    if (!res.ok) {
+      console.error('[EMAIL] Resend API error:', res.status, await res.text());
+      return;
+    }
+
+    console.log('[EMAIL] Sent successfully:', await res.json());
+  } catch (e) {
+    console.error('[EMAIL] Failed to send email:', e);
+  }
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 /**
  * 认证辅助函数
@@ -207,69 +298,26 @@ async function getUser(request: Request, body?: any) {
  * @param order - 订单对象
  */
 async function sendEmailToAdmins(order: any) {
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  if (!RESEND_API_KEY) {
-    console.log('[EMAIL] RESEND_API_KEY not set, skipping email');
-    return;
-  }
-
   console.log('[EMAIL] Preparing to send email for order:', order.id);
-  console.log('[EMAIL] Contact info:', order.contactInfo);
-  
-  // ⚠️ 检测 Resend 是否处于测试模式
-  // 在测试模式下，只能发送到已验证的邮箱，所以跳过发送
-  // 如果使用 onboarding@resend.dev 作为发件地址，说明未配置自定义域名
-  const isTestMode = true; // Resend 默认是测试模式，除非配置了自定义域名
-  
-  // 确定接收者：测试模式下只能发给允许的邮箱
-  const recipients = isTestMode ? [ALLOWED_TEST_EMAIL] : ADMIN_EMAILS;
-  
-  if (isTestMode) {
-    console.log('[EMAIL] ⚠️ Resend is in test mode (using onboarding@resend.dev)');
-    console.log(`[EMAIL] Redirecting email to allowed test address: ${ALLOWED_TEST_EMAIL}`);
-  }
 
-  // 构建邮件 HTML 内容
-  const emailBody = `
-    <h1>New Order Received</h1>
-    <p><strong>Order ID:</strong> ${order.id}</p>
-    <p><strong>User:</strong> ${order.contactInfo?.real_name || 'N/A'} (${order.userEmail})</p>
-    <p><strong>Class:</strong> ${order.contactInfo?.class_name || 'Teacher'}</p>
-    <p><strong>Total:</strong> ¥${order.total.toFixed(2)}</p>
-    <h2>Items:</h2>
-    <ul>
-      ${order.items.map((item: any) => `<li>${item.quantity}x ${item.name?.cn || item.name}</li>`).join('')}
-    </ul>
-    <p>Please check the Admin Dashboard to manage this order.</p>
-    ${isTestMode ? `<p style="color:red;font-size:12px;">[TEST MODE] Original Recipients: ${ADMIN_EMAILS.join(', ')}</p>` : ''}
-  `;
+  const items = order.items
+    .map((item: any) => `<li>${escapeHtml(item.quantity)}x ${escapeHtml(item.name?.cn || item.name)}</li>`)
+    .join('');
 
-  try {
-    console.log('[EMAIL] Sending email to:', recipients);
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'SCLS Shop <onboarding@resend.dev>',
-        to: recipients,
-        subject: `New Order: ${order.contactInfo?.real_name || 'Customer'}`,
-        html: emailBody
-      })
-    });
-    
-    if (!res.ok) {
-        const err = await res.text();
-        console.error('[EMAIL] Resend API error:', res.status, err);
-    } else {
-        const result = await res.json();
-        console.log('[EMAIL] Email sent successfully:', result);
-    }
-  } catch (e) {
-    console.error('[EMAIL] Failed to send email:', e);
-  }
+  await sendMail({
+    subject: `新订单：${order.contactInfo?.real_name || 'Customer'}`,
+    replyTo: order.userEmail,
+    html: `
+      <h1>收到新订单</h1>
+      <p><strong>订单号：</strong>${escapeHtml(order.orderNumber || order.id)}</p>
+      <p><strong>下单人：</strong>${escapeHtml(order.contactInfo?.real_name || 'N/A')} (${escapeHtml(order.userEmail)})</p>
+      <p><strong>班级：</strong>${escapeHtml(order.contactInfo?.class_name || '教师')}</p>
+      <p><strong>合计：</strong>¥${Number(order.total).toFixed(2)}</p>
+      <h2>商品</h2>
+      <ul>${items}</ul>
+      <p>请到后台管理页面处理该订单。直接回复本邮件即可联系下单人。</p>
+    `,
+  });
 }
 
 /**
@@ -277,58 +325,24 @@ async function sendEmailToAdmins(order: any) {
  * @param message - 消息对象
  * @param senderEmail - 发送者邮箱
  */
-async function sendChatMessageNotification(message: any, senderEmail: string) {
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  if (!RESEND_API_KEY) {
-    console.log('[EMAIL] RESEND_API_KEY not set, skipping chat notification');
-    return;
-  }
+async function sendChatMessageNotification(message: any, senderEmail: string, senderProfile?: any) {
+  const classLine = senderProfile?.class_name
+    ? `<p><strong>班级：</strong>${escapeHtml(senderProfile.class_name)}</p>`
+    : '';
 
-  // ⚠️ 检测 Resend 是否处于测试模式
-  const isTestMode = true; // Resend 默认是测试模式
-  
-  // 确定接收者：测试模式下只能发给允许的邮箱
-  const recipients = isTestMode ? [ALLOWED_TEST_EMAIL] : ADMIN_EMAILS;
-
-  // 构建邮件 HTML 内容
-  const emailBody = `
-    <h1>New Message from Customer</h1>
-    <p><strong>Customer:</strong> ${message.senderName} (${senderEmail})</p>
-    <p><strong>Time:</strong> ${new Date(message.timestamp).toLocaleString()}</p>
-    <p><strong>Message:</strong></p>
-    <blockquote style="background-color: #f9f9f9; border-left: 4px solid #ccc; padding: 10px;">
-      ${message.content}
-    </blockquote>
-    <p>Please log in to the Admin Dashboard to reply.</p>
-    ${isTestMode ? `<p style="color:red;font-size:12px;">[TEST MODE] Original Recipients: ${ADMIN_EMAILS.join(', ')}</p>` : ''}
-  `;
-
-  try {
-    console.log('[EMAIL] Sending chat notification to:', recipients);
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'SCLS Shop <onboarding@resend.dev>',
-        to: recipients,
-        subject: `New Message from ${message.senderName}`,
-        html: emailBody
-      })
-    });
-    
-    if (!res.ok) {
-        const err = await res.text();
-        console.error('[EMAIL] Resend API error (Chat Notification):', res.status, err);
-    } else {
-        const result = await res.json();
-        console.log('[EMAIL] Chat notification sent successfully:', result);
-    }
-  } catch (e) {
-    console.error('[EMAIL] Failed to send chat notification:', e);
-  }
+  await sendMail({
+    subject: `用户来信：${message.senderName}`,
+    replyTo: senderEmail,
+    html: `
+      <h1>用户通过站内客服发来消息</h1>
+      <p><strong>用户：</strong>${escapeHtml(message.senderName)} (${escapeHtml(senderEmail)})</p>
+      ${classLine}
+      <p><strong>时间：</strong>${escapeHtml(new Date(message.timestamp).toLocaleString('zh-CN'))}</p>
+      <p><strong>内容：</strong></p>
+      <blockquote style="background-color:#f9f9f9;border-left:4px solid #ccc;padding:10px;white-space:pre-wrap;">${escapeHtml(message.content)}</blockquote>
+      <p>直接回复本邮件即可回到该用户的绑定邮箱，也可以到后台在站内回复。</p>
+    `,
+  });
 }
 
 // 启用日志记录
@@ -630,57 +644,46 @@ app.post(`${BASE_PATH}/debug/fix-stationery`, async (c) => {
 });
 
 // ======================
-// 认证路由
+// 认证路由（邮箱绑定，无密码）
 // ======================
 
 /**
  * POST /send-verification-code - 发送邮箱验证码
- * 公开路由，用于用户注册
- * 使用 Supabase Auth 的 Email OTP 功能
+ * 公开路由。首次绑定和后续登录都走这里，不区分「注册 / 登录」。
  */
 app.post(`${BASE_PATH}/send-verification-code`, async (c) => {
   console.log('[SEND_CODE] Received verification code request');
   
   try {
-    const { email, metadata } = await c.req.json();
+    const body = await c.req.json();
+    const email = normalizeEmail(body?.email);
     
     console.log('[SEND_CODE] Email:', email);
-    console.log('[SEND_CODE] Metadata:', metadata);
     
     if (!email) {
       console.error('[SEND_CODE] Missing email');
-      return c.json({ error: "Email is required" }, 400);
+      return c.json({ error: "请输入邮箱 / Email is required" }, 400);
+    }
+
+    if (!isSchoolEmail(email)) {
+      console.error('[SEND_CODE] Rejected non-school email');
+      return c.json({ error: `只支持学校邮箱（${ALLOWED_EMAIL_DOMAINS.join(' / ')}）` }, 400);
     }
     
-    // 检查用户是否已存在
+    // 判断是首次绑定还是老用户登录，前端据此决定是否要求补全资料
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
     
-    // 尝试获取用户信息
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
-    const userExists = existingUser?.users?.some(u => u.email === email);
+    const matched = existingUser?.users?.find(u => u.email?.toLowerCase() === email);
+    const isNewUser = !matched;
     
-    if (userExists) {
-      console.log('[SEND_CODE] User already exists');
-      return c.json({ error: "该邮箱已被注册，请直接登录" }, 409);
-    }
-    
-    // 将用户元数据临时保存到 KV Store
-    // 因为 Supabase OTP 验证后我们需要手动创建用户并设置密码
-    const metadataKey = `signup_metadata:${email}`;
-    const metadataData = {
-      metadata: metadata,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 10 * 60 * 1000, // 10分钟后过期
-    };
-    
-    await kv.set(metadataKey, metadataData);
-    console.log('[SEND_CODE] Metadata saved to KV Store');
+    console.log('[SEND_CODE] Is new binding:', isNewUser);
     
     // 使用 Supabase Auth 发送 Email OTP
-    // Supabase 会自动生成 8 位验证码并使用您配置的邮件模板发送
+    // Supabase 会自动生成 8 位验证码并使用配置好的邮件模板发送
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -688,34 +691,31 @@ app.post(`${BASE_PATH}/send-verification-code`, async (c) => {
     
     console.log('[SEND_CODE] Sending OTP via Supabase Auth...');
     
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email: email,
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
       options: {
-        shouldCreateUser: true, // ✅ 允许为新用户创建账号
-        data: metadata || {}, // 传递用户元数据
+        shouldCreateUser: true, // 首次绑定时自动建账号
       }
     });
     
     if (error) {
       console.error('[SEND_CODE] Supabase OTP error:', error);
-      console.error('[SEND_CODE] Error details:', {
-        message: error.message,
-        status: error.status,
-        code: error.code
-      });
+      
+      if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
+        return c.json({ error: '验证码发送过于频繁，请稍后再试' }, 429);
+      }
       
       return c.json({ 
-        error: error.message || "Failed to send verification code",
-        details: error.status ? `Status: ${error.status}` : undefined
+        error: error.message || "验证码发送失败，请稍后重试",
       }, 400);
     }
     
     console.log('[SEND_CODE] ✅ OTP sent successfully via Supabase');
-    console.log('[SEND_CODE] Check your email for the verification code!');
     
     return c.json({ 
       success: true,
-      message: "Verification code sent to your email"
+      isNewUser,
+      message: "验证码已发送到你的邮箱"
     });
     
   } catch (error) {
@@ -725,22 +725,26 @@ app.post(`${BASE_PATH}/send-verification-code`, async (c) => {
 });
 
 /**
- * POST /verify-code - 验证验证码并登录/创建用户
- * 公开路由，用于完成注册
- * 使用 Supabase OTP 验证
+ * POST /verify-code - 校验验证码并完成邮箱绑定 / 登录
+ * 公开路由。验证通过即返回 session，由前端写入客户端会话，不涉及密码。
  */
 app.post(`${BASE_PATH}/verify-code`, async (c) => {
   console.log('[VERIFY_CODE] Received verification request');
   
   try {
-    const { email, code, password } = await c.req.json();
+    const body = await c.req.json();
+    const email = normalizeEmail(body?.email);
+    const code = typeof body?.code === 'string' ? body.code.trim() : '';
     
     console.log('[VERIFY_CODE] Email:', email);
-    console.log('[VERIFY_CODE] Code:', code);
     
     if (!email || !code) {
       console.error('[VERIFY_CODE] Missing required fields');
-      return c.json({ error: "Email and code are required" }, 400);
+      return c.json({ error: "请输入邮箱和验证码" }, 400);
+    }
+
+    if (!isSchoolEmail(email)) {
+      return c.json({ error: `只支持学校邮箱（${ALLOWED_EMAIL_DOMAINS.join(' / ')}）` }, 400);
     }
     
     // 使用 Supabase Auth 验证 OTP
@@ -752,7 +756,7 @@ app.post(`${BASE_PATH}/verify-code`, async (c) => {
     console.log('[VERIFY_CODE] Verifying OTP with Supabase...');
     
     const { data, error } = await supabase.auth.verifyOtp({
-      email: email,
+      email,
       token: code,
       type: 'email', // 验证类型为邮箱 OTP
     });
@@ -790,60 +794,21 @@ app.post(`${BASE_PATH}/verify-code`, async (c) => {
     console.log('[VERIFY_CODE] ✅ OTP verified successfully');
     console.log('[VERIFY_CODE] User:', data.user.email);
     
-    // 检查是否需要设置密码（新用户）
-    if (password) {
-      console.log('[VERIFY_CODE] Setting password for user...');
-      
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      );
-      
-      // 使用 Admin API 更新用户密码
-      const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
-        data.user.id,
-        { password: password }
-      );
-      
-      if (passwordError) {
-        console.error('[VERIFY_CODE] Failed to set password:', passwordError);
-        // 不返回错误，因为用户已经创建成功
-      } else {
-        console.log('[VERIFY_CODE] ✅ Password set successfully');
-      }
-      
-      // 获取并更新用户的 metadata（如果有保存）
-      const metadataKey = `signup_metadata:${email}`;
-      const metadataData = await kv.get(metadataKey);
-      
-      if (metadataData?.metadata) {
-        console.log('[VERIFY_CODE] Updating user metadata...');
-        const { error: metadataError } = await supabaseAdmin.auth.admin.updateUserById(
-          data.user.id,
-          { user_metadata: metadataData.metadata }
-        );
-        
-        if (metadataError) {
-          console.error('[VERIFY_CODE] Failed to update metadata:', metadataError);
-        } else {
-          console.log('[VERIFY_CODE] ✅ Metadata updated successfully');
-        }
-        
-        // 删除临时保存的 metadata
-        await kv.del(metadataKey);
-      }
-    }
+    // 资料不全（首次绑定）时前端会引导补全姓名、身份、班级
+    const metadata = data.user.user_metadata || {};
+    const needsProfile = !metadata.real_name;
     
-    console.log('[VERIFY_CODE] Registration/login successful');
+    console.log('[VERIFY_CODE] Needs profile completion:', needsProfile);
     
     return c.json({ 
       success: true,
+      needsProfile,
       session: data.session,
       user: {
         id: data.user.id,
         email: data.user.email,
       },
-      message: "Registration successful"
+      message: "邮箱验证成功"
     });
     
   } catch (error) {
@@ -852,103 +817,65 @@ app.post(`${BASE_PATH}/verify-code`, async (c) => {
   }
 });
 
+const BINDABLE_CLASSES = [
+  '高一（1）班', '高一（2）班',
+  '高二（1）班', '高二（2）班',
+  '高三（1）班', '高三（2）班',
+];
+
 /**
- * POST /signup - 用户注册
- * 公开路由，无需登录
- * 创建新用户并发送邮箱验证邮件
+ * POST /bind-profile - 首次绑定邮箱后补全个人资料
+ * 需要已通过验证码登录（携带 _auth_token）
  */
-app.post(`${BASE_PATH}/signup`, async (c) => {
-  console.log('[SIGNUP] Received signup request');
-  
+app.post(`${BASE_PATH}/bind-profile`, async (c) => {
   try {
-    const { email, password, metadata } = await c.req.json();
-    
-    console.log('[SIGNUP] Email:', email);
-    console.log('[SIGNUP] Metadata:', metadata);
-    
-    if (!email || !password) {
-      console.error('[SIGNUP] Missing email or password');
-      return c.json({ error: "Email and password are required" }, 400);
+    const body = await c.req.json();
+    const user = await getUser(c.req.raw, body);
+
+    if (!user) {
+      return c.json({ error: "Unauthorized" }, 401);
     }
-    
-    // 使用普通的 Supabase 客户端（不是 Service Role）来注册用户
-    // 这样会触发邮件验证流程
-    const supabase = createClient(
+
+    const realName = typeof body?.real_name === 'string' ? body.real_name.trim() : '';
+    const username = typeof body?.username === 'string' ? body.username.trim() : '';
+    const role = body?.role === 'teacher' ? 'teacher' : 'student';
+    const className = typeof body?.class_name === 'string' ? body.class_name.trim() : '';
+
+    if (!realName) {
+      return c.json({ error: '请填写真实姓名' }, 400);
+    }
+
+    if (role === 'student' && !BINDABLE_CLASSES.includes(className)) {
+      return c.json({ error: '学生需要选择所在班级' }, 400);
+    }
+
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
-    
-    console.log('[SIGNUP] Creating user with email verification...');
-    
-    // 使用 signUp 方法，会自动发送验证邮件
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: metadata || {},
-        // 邮件确认后重定向到应用根路径（不能使用 hash）
-        // Supabase 会自动在 URL 后添加 token 参数
-        emailRedirectTo: 'https://scs.figma.site',
-      }
+
+    const nextMetadata = {
+      ...(user.user_metadata || {}),
+      real_name: realName,
+      username: username || realName,
+      role,
+      class_name: role === 'student' ? className : undefined,
+    };
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      user_metadata: nextMetadata,
     });
-    
+
     if (error) {
-      console.error('[SIGNUP] Supabase error object:', JSON.stringify(error, null, 2));
-      console.error('[SIGNUP] Error message:', error.message);
-      console.error('[SIGNUP] Error status:', error.status);
-      console.error('[SIGNUP] Error code:', error.code);
-      console.error('[SIGNUP] Error name:', error.name);
-      
-      // 处理不同类型的错误
-      let errorMessage = error.message || error.msg || error.name || 'Unknown error';
-      let statusCode = error.status || 400;
-      
-      // 处理 AuthRetryableFetchError (504 网关超时)
-      if (error.name === 'AuthRetryableFetchError' || statusCode === 504) {
-        errorMessage = 'Supabase 邮件服务暂时不可用，请稍后重试或联系管理员';
-        console.error('[SIGNUP] AuthRetryableFetchError - Supabase mail service timeout');
-      }
-      // 检查是否是邮箱已存在错误
-      else if (error.message?.includes('already') || error.message?.includes('registered') || error.code === 'user_already_exists') {
-        errorMessage = '该邮箱已被注册，请直接登录';
-        statusCode = 409; // Conflict
-      } else if (error.message?.includes('password')) {
-        errorMessage = '密码不符合要求（至少6位）';
-      } else if (error.message?.includes('email') || error.message?.includes('invalid')) {
-        errorMessage = '邮箱格式不正确';
-      } else if (error.message?.includes('rate limit')) {
-        errorMessage = '操作过于频繁，请稍后再试';
-        statusCode = 429;
-      }
-      
-      console.error('[SIGNUP] Returning error message:', errorMessage);
-      console.error('[SIGNUP] Returning status code:', statusCode);
-      return c.json({ error: errorMessage }, statusCode);
+      console.error('[BIND_PROFILE] Failed to update metadata:', error);
+      return c.json({ error: '资料保存失败，请重试' }, 500);
     }
-    
-    if (!data.user) {
-      console.error('[SIGNUP] No user data returned');
-      return c.json({ error: "Failed to create user" }, 500);
-    }
-    
-    console.log('[SIGNUP] User created successfully:', data.user.email);
-    console.log('[SIGNUP] Email confirmed:', !!data.user.email_confirmed_at);
-    console.log('[SIGNUP] Confirmation sent:', !data.user.email_confirmed_at);
-    
-    return c.json({ 
-      success: true, 
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-        email_confirmed: !!data.user.email_confirmed_at
-      },
-      message: data.user.email_confirmed_at 
-        ? 'Registration successful' 
-        : 'Please check your email to confirm your account'
-    });
-    
+
+    console.log('[BIND_PROFILE] ✅ Profile bound for', user.email);
+
+    return c.json({ success: true, profile: nextMetadata });
   } catch (error) {
-    console.error('[SIGNUP] Unexpected error:', error);
+    console.error('[BIND_PROFILE] Unexpected error:', error);
     return c.json({ error: String(error) }, 500);
   }
 });
@@ -2801,8 +2728,9 @@ app.post(`${BASE_PATH}/chat/send`, async (c) => {
       sessionData.customerName = senderName || sessionData.customerName;
       sessionData.customerEmail = user.email || sessionData.customerEmail;
 
-      // 发送邮件通知管理员（异步）
-      sendChatMessageNotification(message, user.email).catch(e => console.error('[CHAT] Failed to send email notification:', e));
+      // 发送邮件通知管理员（异步）；reply_to 指向用户绑定邮箱，便于直接回信
+      sendChatMessageNotification(message, user.email, user.user_metadata)
+        .catch(e => console.error('[CHAT] Failed to send email notification:', e));
     }
 
     await kv.set(sessionKey, sessionData);

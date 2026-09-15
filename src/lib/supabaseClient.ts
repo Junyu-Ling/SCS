@@ -20,47 +20,15 @@ const supabaseKey = publicAnonKey;
 // 单例实例
 let supabaseInstance: SupabaseClient | null = null;
 
-// 存储偏好设置
-// 初始化逻辑：如果 SessionStorage 中有 token 且 LocalStorage 中没有，则默认为不记住（SessionStorage）
-// 否则默认为记住（LocalStorage）
-let persistInLocalStorage = true;
-
-if (typeof window !== 'undefined') {
-  const tokenKey = `sb-${projectId}-auth-token`;
-  const hasSessionStorage = window.sessionStorage.getItem(tokenKey);
-  const hasLocalStorage = window.localStorage.getItem(tokenKey);
-  
-  if (hasSessionStorage && !hasLocalStorage) {
-    persistInLocalStorage = false;
-  }
-}
-
-/**
- * 设置认证持久化模式
- * @param remember - true: 使用 LocalStorage (记住我); false: 使用 SessionStorage (浏览器关闭即失效)
- */
-export function setAuthPersistence(remember: boolean) {
-  persistInLocalStorage = remember;
-  console.log('[Supabase] Auth persistence set to:', remember ? 'LocalStorage' : 'SessionStorage');
-}
-
-// 自定义存储适配器，支持动态切换 LocalStorage 和 SessionStorage
+// 邮箱绑定登录后会话长期保留在 LocalStorage，换设备或会话过期才需要重新收验证码。
+// getItem 仍读 SessionStorage，用于承接旧版「不记住我」留下的会话。
 const customStorage = {
   getItem: (key: string): string | null => {
-    // 优先查找 LocalStorage，然后 SessionStorage
-    // 这样即使用户之前是“记住我”，现在切换到“不记住”，也能读取到旧的 session
     return window.localStorage.getItem(key) || window.sessionStorage.getItem(key);
   },
   setItem: (key: string, value: string): void => {
-    if (persistInLocalStorage) {
-      window.localStorage.setItem(key, value);
-      // 确保存储在 SessionStorage 中的旧数据被清理，避免混淆
-      window.sessionStorage.removeItem(key);
-    } else {
-      window.sessionStorage.setItem(key, value);
-      // 确保存储在 LocalStorage 中的旧数据被清理
-      window.localStorage.removeItem(key);
-    }
+    window.localStorage.setItem(key, value);
+    window.sessionStorage.removeItem(key);
   },
   removeItem: (key: string): void => {
     window.localStorage.removeItem(key);
