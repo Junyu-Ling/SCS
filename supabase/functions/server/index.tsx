@@ -189,17 +189,30 @@ function getMailConfig() {
 }
 
 /**
+ * 把发件人显示名换成用户姓名，保留 MAIL_FROM 的邮箱地址。
+ * From 的地址部分必须留在已验证域名上，否则 SPF/DKIM 失败、邮件会被判为伪造。
+ */
+function withSenderName(from: string, displayName?: string): string {
+  const name = String(displayName ?? '').replace(/["\\<>\r\n]/g, '').trim();
+  if (!name) return from;
+  const address = from.match(/<([^>]+)>/)?.[1] ?? from;
+  return `${name} <${address}>`;
+}
+
+/**
  * 通过 Resend 发送邮件
  * @param replyTo - 设为用户绑定邮箱时，管理员在邮箱里直接「回复」即可回到用户
+ * @param senderName - 覆盖发件人显示名，让收件箱里显示为该用户
  */
-async function sendMail(options: { subject: string; html: string; replyTo?: string }) {
+async function sendMail(options: { subject: string; html: string; replyTo?: string; senderName?: string }) {
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
   if (!RESEND_API_KEY) {
     console.log('[EMAIL] RESEND_API_KEY not set, skipping email');
     return;
   }
 
-  const { from, isSandbox, recipients, intendedRecipients } = getMailConfig();
+  const { from: baseFrom, isSandbox, recipients, intendedRecipients } = getMailConfig();
+  const from = withSenderName(baseFrom, options.senderName);
 
   if (isSandbox) {
     console.log('[EMAIL] ⚠️ MAIL_FROM not configured, Resend is still in sandbox mode');
@@ -304,8 +317,11 @@ async function sendEmailToAdmins(order: any) {
     .map((item: any) => `<li>${escapeHtml(item.quantity)}x ${escapeHtml(item.name?.cn || item.name)}</li>`)
     .join('');
 
+  const buyerName = order.contactInfo?.real_name || order.userEmail || 'Customer';
+
   await sendMail({
-    subject: `新订单：${order.contactInfo?.real_name || 'Customer'}`,
+    subject: `新订单：${buyerName}`,
+    senderName: buyerName,
     replyTo: order.userEmail,
     html: `
       <h1>收到新订单</h1>
@@ -332,6 +348,7 @@ async function sendChatMessageNotification(message: any, senderEmail: string, se
 
   await sendMail({
     subject: `用户来信：${message.senderName}`,
+    senderName: message.senderName,
     replyTo: senderEmail,
     html: `
       <h1>用户通过站内客服发来消息</h1>
