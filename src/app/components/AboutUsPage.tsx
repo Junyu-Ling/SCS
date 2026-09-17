@@ -7,12 +7,24 @@ import {
   type AboutUsTextBlock,
 } from './AboutUsEditor';
 
+const ACCENT = '#ff6b35';
+
+function adaptColorForSurface(color: string, onDark: boolean): string {
+  if (!onDark) return color;
+  if (color.includes('text-black') || color.includes('text-gray')) return 'text-white/90';
+  return color;
+}
+
 /**
- * 渲染内联文本块数组（用于 Hero 和 Thank You 区域）
- * 首行用 headingTag 承载标题语义，其余行用 div，避免一页出现多个 h1
+ * 渲染内联文本块（Hero / Thank You）
  */
-function renderInlineBlocks(blocks: AboutUsTextBlock[], headingTag: 'h1' | 'h2' = 'h1') {
+function renderInlineBlocks(
+  blocks: AboutUsTextBlock[],
+  options: { headingTag?: 'h1' | 'h2'; onDark?: boolean } = {},
+) {
+  const { headingTag = 'h1', onDark = false } = options;
   const lines: AboutUsTextBlock[][] = [[]];
+
   for (const block of blocks) {
     if (block.text === '\n') {
       lines.push([]);
@@ -26,12 +38,14 @@ function renderInlineBlocks(blocks: AboutUsTextBlock[], headingTag: 'h1' | 'h2' 
     return (
       <Tag
         key={lineIdx}
-        className={`leading-tight tracking-tight ${lineIdx > 0 ? 'mt-2 sm:mt-3' : ''}`}
+        className={`mx-auto w-full max-w-2xl text-center leading-tight tracking-tight ${
+          lineIdx > 0 ? 'mt-3 sm:mt-4' : ''
+        }`}
       >
         {line.map((block, idx) => (
           <span
             key={idx}
-            className={`${block.fontSize} ${block.fontWeight} ${block.color} break-words`}
+            className={`${block.fontSize} ${block.fontWeight} ${adaptColorForSurface(block.color, onDark)} break-words`}
           >
             {block.text}
           </span>
@@ -41,35 +55,86 @@ function renderInlineBlocks(blocks: AboutUsTextBlock[], headingTag: 'h1' | 'h2' 
   });
 }
 
-function renderParagraph(block: AboutUsTextBlock, idx: number) {
+function isMemberListBlock(text: string): boolean {
+  const firstLine = text.split('\n')[0]?.trim() ?? '';
+  return (
+    firstLine.endsWith(':') ||
+    firstLine.endsWith('：') ||
+    /^(Current Members|Honored Members|现任成员|荣誉成员)/i.test(firstLine)
+  );
+}
+
+function renderMemberList(block: AboutUsTextBlock, idx: number) {
+  const lines = block.text.split('\n').filter((line) => line.trim() !== '');
+  const heading = lines[0] ?? '';
+  const members: string[] = [];
+  const footnotes: string[] = [];
+
+  for (const line of lines.slice(1)) {
+    if (line.trimStart().startsWith('*')) {
+      footnotes.push(line);
+    } else {
+      members.push(line.trim());
+    }
+  }
+
+  return (
+    <div
+      key={idx}
+      className={`${block.fontSize} ${block.fontWeight} ${block.color} mx-auto w-full max-w-xl text-center`}
+    >
+      <p className="mb-4 font-black tracking-wide text-inherit">{heading}</p>
+      <ul className="mx-auto flex max-w-lg flex-wrap justify-center gap-2.5 sm:gap-3">
+        {members.map((name) => (
+          <li
+            key={name}
+            className="rounded-full border border-primary/15 bg-primary/5 px-4 py-2 text-sm font-medium text-primary sm:text-base"
+          >
+            {name}
+          </li>
+        ))}
+      </ul>
+      {footnotes.map((note, noteIdx) => (
+        <p key={noteIdx} className="mt-4 text-xs font-normal text-gray-500 sm:text-sm">
+          {note}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function renderParagraph(block: AboutUsTextBlock, idx: number, sectionId?: string) {
+  if (sectionId === 'team' && isMemberListBlock(block.text)) {
+    return renderMemberList(block, idx);
+  }
+
   const lines = block.text.split('\n');
   const hasHeadingLine = Boolean(lines[0]) && (lines[0].endsWith(':') || lines[0].endsWith('：'));
 
   return (
     <div
       key={idx}
-      className={`${block.fontSize} ${block.fontWeight} ${block.color} leading-relaxed break-words`}
+      className={`${block.fontSize} ${block.fontWeight} ${block.color} mx-auto w-full max-w-xl text-center leading-relaxed break-words`}
     >
       {lines.map((line, lineIdx) => {
         if (lineIdx === 0 && hasHeadingLine) {
           return (
-            <p key={lineIdx} className="font-black text-inherit tracking-wide mb-3">
+            <p key={lineIdx} className="mb-3 font-black tracking-wide text-inherit">
               {line}
             </p>
           );
         }
 
-        // 以 * 开头的行是排名说明一类的脚注，降级为小字弱化显示
         if (line.trimStart().startsWith('*')) {
           return (
-            <p key={lineIdx} className="mt-3 text-xs sm:text-sm font-normal text-gray-500">
+            <p key={lineIdx} className="mt-3 text-xs font-normal text-gray-500 sm:text-sm">
               {line}
             </p>
           );
         }
 
         return (
-          <p key={lineIdx} className={lineIdx > 0 ? 'mt-1' : ''}>
+          <p key={lineIdx} className={lineIdx > 0 ? 'mt-1.5' : ''}>
             {line}
           </p>
         );
@@ -101,67 +166,80 @@ export default function AboutUsPage() {
   const thankYouBlocks = language === 'en' ? content.thankYouEn : content.thankYouCn;
 
   return (
-    <div className="min-h-screen bg-[#f6faf7] overflow-x-hidden">
-      {/* Hero：全宽浅绿渐变，文字居中；深色/橙色文案在浅底上保持可读 */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#c9e0d1] via-[#dcebe1] to-[#f6faf7] px-4 py-14 sm:px-6 sm:py-20 md:py-24">
+    <div className="min-h-screen overflow-x-hidden bg-[#f3f7f4]">
+      {/* Hero：站点主色渐变，文案全居中 */}
+      <section className="relative flex flex-col items-center overflow-hidden bg-gradient-to-br from-[#123e32] via-primary to-[#2e765d] px-4 py-16 text-white sm:px-6 sm:py-20 md:py-24">
         <div
-          className="pointer-events-none absolute -left-16 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl"
+          className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/[0.08] blur-3xl"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-24 -right-16 h-56 w-56 rounded-full bg-[#ff6b35]/[0.07] blur-3xl"
+          className="pointer-events-none absolute -bottom-28 -right-20 h-72 w-72 rounded-full bg-[#ff6b35]/10 blur-3xl"
           aria-hidden
         />
 
-        <div className="relative mx-auto flex max-w-3xl min-w-0 flex-col items-center text-center">
-          <span className="mb-5 inline-flex items-center rounded-full border border-primary/20 bg-white/70 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-primary backdrop-blur sm:mb-7 sm:text-sm">
+        <div className="relative mx-auto w-full max-w-3xl text-center">
+          <span className="mb-6 inline-flex items-center rounded-full border border-white/25 bg-white/10 px-5 py-1.5 text-xs font-medium uppercase tracking-[0.25em] text-white/95 backdrop-blur-sm sm:mb-8 sm:text-sm">
             {t('About Us', '关于我们')}
           </span>
-          <div className="w-full min-w-0">{renderInlineBlocks(heroBlocks)}</div>
-          <span className="mt-7 block h-1 w-16 rounded-full bg-[#ff6b35] sm:mt-9" aria-hidden />
+
+          <div className="space-y-1">{renderInlineBlocks(heroBlocks, { onDark: true })}</div>
+
+          <span
+            className="mx-auto mt-8 block h-1 w-14 rounded-full sm:mt-10"
+            style={{ backgroundColor: ACCENT }}
+            aria-hidden
+          />
         </div>
       </section>
 
-      {/* 正文：白色卡片承载各板块，标题与段落全部居中 */}
-      <div className="mx-auto max-w-4xl space-y-8 px-4 pb-12 pt-10 sm:space-y-10 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8">
-        {content.sections.map((section) => {
+      {/* 正文：单列居中，卡片统一宽度 */}
+      <div className="flex w-full flex-col items-center space-y-8 px-4 py-12 sm:space-y-10 sm:px-6 sm:py-16 lg:px-8">
+        {content.sections.map((section, sectionIdx) => {
           const paragraphs = language === 'en' ? section.paragraphsEn : section.paragraphsCn;
           const title = language === 'en' ? section.titleEn : section.titleCn;
+          const isTeam = section.id === 'team';
 
           return (
             <section
               key={section.id}
-              className="min-w-0 rounded-3xl border border-primary/10 bg-white px-5 py-9 shadow-[0_18px_50px_-32px_rgba(23,77,61,0.45)] transition-shadow duration-300 hover:shadow-[0_22px_60px_-30px_rgba(23,77,61,0.5)] sm:px-10 sm:py-12"
+              className="w-full max-w-3xl rounded-3xl border border-white/80 bg-white px-6 py-10 text-center shadow-[0_20px_60px_-40px_rgba(23,77,61,0.55)] sm:px-10 sm:py-12"
             >
-              <h2
-                className={`${section.titleSize} ${section.titleColor} break-words px-1 text-center leading-tight`}
-              >
-                {title}
-              </h2>
-              <span
-                className="mx-auto mb-7 mt-5 block h-1 w-12 rounded-full bg-[#ff6b35]/70 sm:mb-8"
-                aria-hidden
-              />
-              <div className="mx-auto min-w-0 max-w-2xl space-y-6 text-center">
-                {paragraphs.map((block, idx) => renderParagraph(block, idx))}
+              <div className="mx-auto w-full max-w-2xl">
+                <span className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary/60">
+                  {String(sectionIdx + 1).padStart(2, '0')}
+                </span>
+                <h2
+                  className={`${section.titleSize} ${isTeam ? 'text-[#ff6b35]' : 'text-primary'} break-words leading-tight`}
+                >
+                  {title}
+                </h2>
+                <span
+                  className="mx-auto my-6 block h-1 w-12 rounded-full sm:my-7"
+                  style={{ backgroundColor: ACCENT }}
+                  aria-hidden
+                />
+                <div className="space-y-7 sm:space-y-8">
+                  {paragraphs.map((block, idx) => renderParagraph(block, idx, section.id))}
+                </div>
               </div>
             </section>
           );
         })}
       </div>
 
-      {/* 结尾致谢：沿用站点深绿渐变，承载白色/橙色文案 */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0f3a2e] via-primary to-[#20614d] px-4 py-14 text-white sm:px-8 sm:py-20">
+      {/* 结尾致谢 */}
+      <section className="relative flex flex-col items-center overflow-hidden bg-gradient-to-br from-[#0c3328] via-primary to-[#1f6b52] px-4 py-16 text-white sm:px-6 sm:py-24">
         <div
-          className="pointer-events-none absolute -top-20 right-0 h-64 w-64 rounded-full bg-[#ff6b35]/15 blur-3xl"
+          className="pointer-events-none absolute -top-16 right-0 h-64 w-64 rounded-full bg-[#ff6b35]/15 blur-3xl"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-secondary/20 blur-3xl"
+          className="pointer-events-none absolute -bottom-20 -left-12 h-64 w-64 rounded-full bg-secondary/25 blur-3xl"
           aria-hidden
         />
-        <div className="relative mx-auto min-w-0 max-w-3xl text-center">
-          {renderInlineBlocks(thankYouBlocks, 'h2')}
+        <div className="relative mx-auto w-full max-w-3xl text-center">
+          {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2', onDark: true })}
         </div>
       </section>
     </div>
