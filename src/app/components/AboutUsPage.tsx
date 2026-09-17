@@ -167,18 +167,9 @@ export default function AboutUsPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f3f7f4]">
-      {/* Hero：站点主色渐变，文案全居中 */}
-      <section className="relative flex flex-col items-center overflow-hidden bg-gradient-to-br from-[#123e32] via-primary to-[#2e765d] px-4 py-16 text-white sm:px-6 sm:py-20 md:py-24">
-        <div
-          className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/[0.08] blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -bottom-28 -right-20 h-72 w-72 rounded-full bg-[#ff6b35]/10 blur-3xl"
-          aria-hidden
-        />
-
-        <div className="relative mx-auto w-full max-w-3xl text-center">
+      {/* Hero：纯色品牌背景，文案全居中 */}
+      <section className="flex flex-col items-center bg-primary px-4 py-16 text-white sm:px-6 sm:py-20 md:py-24">
+        <div className="mx-auto w-full max-w-3xl text-center">
           <span className="mb-6 inline-flex items-center rounded-full border border-white/25 bg-white/10 px-5 py-1.5 text-xs font-medium uppercase tracking-[0.25em] text-white/95 backdrop-blur-sm sm:mb-8 sm:text-sm">
             {t('About Us', '关于我们')}
           </span>
@@ -229,16 +220,8 @@ export default function AboutUsPage() {
       </div>
 
       {/* 结尾致谢 */}
-      <section className="relative flex flex-col items-center overflow-hidden bg-gradient-to-br from-[#0c3328] via-primary to-[#1f6b52] px-4 py-16 text-white sm:px-6 sm:py-24">
-        <div
-          className="pointer-events-none absolute -top-16 right-0 h-64 w-64 rounded-full bg-[#ff6b35]/15 blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -bottom-20 -left-12 h-64 w-64 rounded-full bg-secondary/25 blur-3xl"
-          aria-hidden
-        />
-        <div className="relative mx-auto w-full max-w-3xl text-center">
+      <section className="flex flex-col items-center bg-[#102f27] px-4 py-16 text-white sm:px-6 sm:py-24">
+        <div className="mx-auto w-full max-w-3xl text-center">
           {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2', onDark: true })}
         </div>
       </section>
