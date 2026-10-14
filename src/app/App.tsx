@@ -35,6 +35,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CartProvider } from './contexts/CartContext';
 import { ProfileProvider } from './contexts/ProfileContext';
+import { CheckoutProfileProvider } from './contexts/CheckoutProfileContext';
 import { Toaster } from './components/ui/sonner';
 import { useImagePreloader } from './hooks/useImagePreloader';
 import VisitorStats from './components/VisitorStats';
@@ -213,6 +214,7 @@ export default function App() {
     <LanguageProvider>
       <ThemeProvider>
         <ProfileProvider>
+          <CheckoutProfileProvider>
           <CartProvider>
             <ErrorBoundary>
               <div className="min-h-screen bg-background flex flex-col w-full overflow-x-hidden">
@@ -226,6 +228,7 @@ export default function App() {
               </div>
             </ErrorBoundary>
           </CartProvider>
+          </CheckoutProfileProvider>
         </ProfileProvider>
       </ThemeProvider>
     </LanguageProvider>

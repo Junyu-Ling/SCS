@@ -260,9 +260,47 @@ export default function OrderHistory() {
   }
 
   if (!user) {
+    let localOrders: { orderNumber?: string; total?: number; createdAt?: string }[] = [];
+    try {
+      localOrders = JSON.parse(localStorage.getItem('scls_local_orders') || '[]');
+    } catch {
+      localOrders = [];
+    }
+
     return (
-      <div className="flex justify-center items-center h-[50vh]">
-        Please log in to view orders.
+      <div className="container mx-auto py-8 px-4 max-w-2xl">
+        <Card className="shadow-none border border-[#E5E7EB] rounded-xl">
+          <CardHeader>
+            <CardTitle>{t('My Reservations', '我的预定')}</CardTitle>
+            <CardDescription>
+              {t(
+                'Reservations submitted on this device. Admins are notified by email.',
+                '本机提交过的预定。管理员会收到邮件通知。'
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {localOrders.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t('No reservations on this device yet.', '这台设备上还没有预定记录。')}
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {localOrders.map((order, index) => (
+                  <li key={`${order.orderNumber}-${index}`} className="flex items-center justify-between border-b border-border pb-3 last:border-0">
+                    <div>
+                      <p className="text-sm font-medium">{order.orderNumber || t('Reservation', '预定')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleString() : ''}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold">¥{Number(order.total || 0).toFixed(2)}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }

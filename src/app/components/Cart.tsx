@@ -1,11 +1,17 @@
-import { X, Trash2, ChevronRight, ShoppingBag, Plus, Minus } from 'lucide-react';
+import { X, Trash2, ChevronRight, ChevronLeft, ShoppingBag, Loader2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
+import {
+  isCheckoutProfileComplete,
+  useCheckoutProfile,
+  type CheckoutProfile,
+} from '../contexts/CheckoutProfileContext';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import CheckoutProfileForm from './CheckoutProfileForm';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Cart() {
   const { t } = useLanguage();
@@ -20,26 +26,57 @@ export default function Cart() {
     selectedIds,
     submitOrder,
   } = useCart();
+  const { checkoutProfile, saveCheckoutProfile } = useCheckoutProfile();
 
-  const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null);
+  const [checkoutStep, setCheckoutStep] = useState(false);
+  const [draft, setDraft] = useState<CheckoutProfile>(checkoutProfile);
+  const [submitting, setSubmitting] = useState(false);
 
-  const allSelectableChecked = cartItems.length > 0 && 
+  const allSelectableChecked = cartItems.length > 0 &&
     cartItems.filter(item => item.canBuy).every(item => selectedIds.has(item.id));
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    if (!isCartOpen) {
+      setCheckoutStep(false);
+      setSubmitting(false);
+    }
+  }, [isCartOpen]);
+
+  useEffect(() => {
+    if (checkoutStep) setDraft(checkoutProfile);
+  }, [checkoutStep, checkoutProfile]);
+
+  const handleReserve = () => {
     const selectedItems = cartItems.filter(item => selectedIds.has(item.id));
     if (selectedItems.length === 0) {
       toast.error(t('No items selected', '未选择商品'));
       return;
     }
-    
-    await submitOrder();
-    setIsCartOpen(false);
+    setDraft(checkoutProfile);
+    setDraft(checkoutProfile);
+    setDraft(checkoutProfile);
+    setDraft(checkoutProfile);
+    setCheckoutStep(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!isCheckoutProfileComplete(draft)) {
+      toast.error(t('Please fill in name, email, and class', '请填写真实姓名、邮箱和班级'));
+      return;
+    }
+
+    setSubmitting(true);
+    saveCheckoutProfile(draft);
+    const ok = await submitOrder(draft);
+    setSubmitting(false);
+    if (ok) {
+      setCheckoutStep(false);
+      setIsCartOpen(false);
+    }
   };
 
   return (
     <>
-      {/* Backdrop */}
       {isCartOpen && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity duration-300"
@@ -47,19 +84,31 @@ export default function Cart() {
         />
       )}
 
-      {/* Cart Sidebar */}
       <div
         className={`fixed top-0 right-0 h-full w-full sm:w-[90vw] md:w-[500px] bg-card shadow-2xl z-50 transform transition-transform duration-300 ease-out ${
           isCartOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0 bg-card">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold text-card-foreground">{t('Cart', '购物车')}</h2>
-              {cartItems.length > 0 && (
+              {checkoutStep ? (
+                <button
+                  onClick={() => setCheckoutStep(false)}
+                  className="p-2 hover:bg-accent rounded-full transition-colors touch-manipulation"
+                  aria-label="Back"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              ) : (
+                <ShoppingBag className="w-5 h-5 text-primary" />
+              )}
+              <h2 className="text-xl font-semibold text-card-foreground">
+                {checkoutStep
+                  ? t('Checkout details', '填写下单信息')
+                  : t('Cart', '购物车')}
+              </h2>
+              {!checkoutStep && cartItems.length > 0 && (
                 <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
                   {cartItems.length}
                 </span>
@@ -74,10 +123,18 @@ export default function Cart() {
             </button>
           </div>
 
-          {/* Cart Items */}
           <div className="flex-1 overflow-y-auto p-4">
-            {cartItems.length === 0 ? (
-              /* Empty State */
+            {checkoutStep ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  {t(
+                    'Saved on this device for the next reservation.',
+                    '这些信息会保存在本机，下次下单会自动填写。'
+                  )}
+                </p>
+                <CheckoutProfileForm value={draft} onChange={setDraft} />
+              </div>
+            ) : cartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
                 <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4">
                   <ShoppingBag className="w-12 h-12 text-muted-foreground" />
@@ -107,7 +164,6 @@ export default function Cart() {
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s both`
                     }}
                   >
-                    {/* Checkbox */}
                     <div className="flex items-start pt-1 flex-shrink-0">
                       <Checkbox
                         checked={selectedIds.has(item.id)}
@@ -117,7 +173,6 @@ export default function Cart() {
                       />
                     </div>
 
-                    {/* Image */}
                     <div className="w-20 h-20 flex-shrink-0 bg-muted rounded overflow-hidden">
                       <ImageWithFallback
                         src={item.image}
@@ -126,7 +181,6 @@ export default function Cart() {
                       />
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-medium text-card-foreground line-clamp-2 mb-1">
                         {item.name}
@@ -147,7 +201,6 @@ export default function Cart() {
                       </div>
                     </div>
 
-                    {/* Delete Button */}
                     <button
                       onClick={() => removeFromCart(item.id)}
                       className="p-2 hover:bg-destructive/10 rounded-full transition-colors touch-manipulation self-start"
@@ -161,25 +214,24 @@ export default function Cart() {
             )}
           </div>
 
-          {/* Footer - Only show when there are items */}
           {cartItems.length > 0 && (
             <div className="border-t border-border bg-card p-4 flex-shrink-0">
-              {/* Select All */}
-              <div className="flex items-center gap-2 mb-3">
-                <Checkbox
-                  checked={allSelectableChecked}
-                  onCheckedChange={() => selectAll(!allSelectableChecked)}
-                  className="touch-manipulation"
-                />
-                <span className="text-sm text-card-foreground">
-                  {t('Select All', '全选')}
-                </span>
-              </div>
+              {!checkoutStep && (
+                <div className="flex items-center gap-2 mb-3">
+                  <Checkbox
+                    checked={allSelectableChecked}
+                    onCheckedChange={() => selectAll(!allSelectableChecked)}
+                    className="touch-manipulation"
+                  />
+                  <span className="text-sm text-card-foreground">
+                    {t('Select All', '全选')}
+                  </span>
+                </div>
+              )}
 
-              {/* Total with animation */}
               <div className="flex items-center justify-between mb-4">
                 <span className="text-base text-card-foreground">{t('Total', '总计')}:</span>
-                <span 
+                <span
                   className="text-2xl font-bold text-primary transition-all duration-300"
                   key={getTotalPrice()}
                   style={{ animation: 'priceUpdate 0.3s ease-out' }}
@@ -188,21 +240,36 @@ export default function Cart() {
                 </span>
               </div>
 
-              {/* Checkout Button */}
-              <Button
-                onClick={handleSubmit}
-                disabled={selectedIds.size === 0}
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed h-12 text-base font-medium transition-colors duration-200 rounded-xl"
-              >
-                {t('Reserve', '提交预定')} ({selectedIds.size})
-                <ChevronRight className="w-5 h-5 ml-1" />
-              </Button>
+              {checkoutStep ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed h-12 text-base font-medium transition-colors duration-200 rounded-xl"
+                >
+                  {submitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      {t('Submit reservation', '提交预定')}
+                      <ChevronRight className="w-5 h-5 ml-1" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleReserve}
+                  disabled={selectedIds.size === 0}
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed h-12 text-base font-medium transition-colors duration-200 rounded-xl"
+                >
+                  {t('Reserve', '提交预定')} ({selectedIds.size})
+                  <ChevronRight className="w-5 h-5 ml-1" />
+                </Button>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Animations */}
       <style>{`
         @keyframes slideIn {
           from {
@@ -225,7 +292,6 @@ export default function Cart() {
         }
       `}</style>
 
-      {/* Cart Toggle Button (when closed) */}
       {!isCartOpen && cartItems.length > 0 && (
         <button
           onClick={() => setIsCartOpen(true)}

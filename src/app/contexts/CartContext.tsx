@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useProfile } from './ProfileContext';
 import { projectId, publicAnonKey } from '../../../utils/supabase/info';
-import { supabase } from '../../lib/supabaseClient';
+import type { CheckoutProfile } from './CheckoutProfileContext';
 
 /**
  * 购物车商品类型定义
@@ -35,7 +34,7 @@ interface CartContextType {
   toggleItemSelection: (id: string) => void;          // 切换商品选中状态
   selectAll: (selected: boolean) => void;             // 全选/取消全选
   selectedIds: Set<string>;                           // 选中的商品 ID 集合
-  submitOrder: () => Promise<boolean>;                // 提交预定
+  submitOrder: (contact: CheckoutProfile) => Promise<boolean>;                // 提交预定
   clearCart: () => void;                              // 清空购物车
   syncCart: () => Promise<void>;                      // 手动同步购物车
 }
@@ -53,57 +52,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const { user, profile, session } = useProfile();
 
-  /**
-   * 从 localStorage 加载购物车
-   * 支持登录和未登录用户
-   */
   useEffect(() => {
-    // 使用通用购物车 key 或用户专属 key
-    const cartKey = user ? `cart_${user.id}` : 'cart_guest';
-    const savedCart = localStorage.getItem(cartKey);
-    
+    const savedCart = localStorage.getItem('cart_guest');
     if (savedCart) {
       try {
-        const items = JSON.parse(savedCart);
-        console.log(`[CART] Loaded from localStorage (${user ? 'user' : 'guest'}):`, items.length, 'items');
-        setCartItems(items);
+        setCartItems(JSON.parse(savedCart));
       } catch (error) {
         console.error('[CART] Error parsing saved cart:', error);
         setCartItems([]);
       }
-    } else {
-      console.log(`[CART] No saved cart found (${user ? 'user' : 'guest'})`);
-      // Don't clear cart items if this is initial load
-      if (cartItems.length === 0) {
-        setCartItems([]);
-      }
     }
-  }, [user]);
+  }, []);
 
-  /**
-   * 自动保存购物车到 localStorage
-   * 当购物车内容改变时自动保存
-   * 支持登录和未登录用户
-   */
   useEffect(() => {
-    const cartKey = user ? `cart_${user.id}` : 'cart_guest';
-    localStorage.setItem(cartKey, JSON.stringify(cartItems));
-    console.log(`[CART] Saved to localStorage (${user ? 'user' : 'guest'}):`, cartItems.length, 'items');
-  }, [cartItems, user]);
+    localStorage.setItem('cart_guest', JSON.stringify(cartItems));
+  }, [cartItems]);
 
-  /**
-   * 同步购物车
-   * 实际上只是触发一次保存到 localStorage
-   */
   const syncCart = async () => {
-    if (!user) {
-      console.log('[CART] Not syncing - user not logged in');
-      return;
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 300));
+    localStorage.setItem('cart_guest', JSON.stringify(cartItems));
   };
 
   /**
@@ -215,96 +182,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * 提交预定
-   * - 验证登录状态
-   * - 验证选中商品
+   * - 验证选中商品与联系信息
    * - 调用后端 API 保存预定到 KV Store
+   * - 邮件通知管理员
    * - 清除已提交的商品
    */
-  const submitOrder = async () => {
-    // 1. 验证登录状态
-    if (!user) {
-      toast.error('Please log in to submit reservation / 请先登录提交预定');
-      return false;
-    }
-
-    // 2. 获取最新的 session（确保 token 是最新的）
-    console.log('[CART] ========== STARTING ORDER SUBMISSION ==========');
-    console.log('[CART] Getting fresh session...');
-    const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('[CART] Session error:', sessionError);
-      toast.error('Session error, please try again / 会话错误，请重试');
-      return false;
-    }
-    
-    if (!freshSession?.access_token) {
-      console.error('[CART] No valid session or access_token found after refresh');
-      toast.error('Session expired, please log in again / 会话过期，请重新登录');
-      return false;
-    }
-    
-    console.log('[CART] Fresh session obtained');
-    console.log('[CART] Token length:', freshSession.access_token.length);
-    console.log('[CART] Session expires at:', freshSession.expires_at ? new Date(freshSession.expires_at * 1000).toISOString() : 'unknown');
-    console.log('[CART] Current time:', new Date().toISOString());
-
-    // 3. 验证选中商品
+  const submitOrder = async (contact: CheckoutProfile) => {
     const itemsToBuy = getSelectedItems();
     if (itemsToBuy.length === 0) {
       toast.error('Please select items to checkout / 请选择要结算的商品');
       return false;
     }
 
-    // 4. 验证用户资料
-    if (!profile) {
-      toast.error('Profile not loaded / 个人信息未加载');
-      return false;
-    }
-
     try {
-      console.log('[CART] Preparing order submission...');
-      console.log('[CART] User ID:', user.id);
-      console.log('[CART] User email:', user.email);
       const total = getTotalPrice();
-
-      // 5. 调用后端 API 提交订单
-      // 使用标准 fetch（不通过 Edge Function 路由）
       const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-c4f5ade4`;
-      
-      const requestBody = {
-        items: itemsToBuy,
-        total,
-        contactInfo: {
-          real_name: profile.real_name,
-          class_name: profile.class_name,
-          role: profile.role,
-        },
-      };
-      
-      console.log('[CART] Request URL:', `${API_BASE}/orders`);
-      console.log('[CART] Request method: POST');
-      console.log('[CART] Request body items count:', itemsToBuy.length);
-      
-      // 使用 publicAnonKey 作为基础认证，然后在 body 中传递用户 token
-      const requestHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${publicAnonKey}`,  // 使用 anon key 通过网关
-      };
-      
-      // 在 body 中包含 access token
-      const requestBodyWithAuth = {
-        ...requestBody,
-        _auth_token: freshSession.access_token,  // 在 body 中传递用户 token
-      };
-      
-      console.log('[CART] Using anon key for gateway, user token in body');
-      console.log('[CART] Sending request to backend...');
-      
       const response = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
-        headers: requestHeaders,
-        body: JSON.stringify(requestBodyWithAuth),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${publicAnonKey}`,
+        },
+        body: JSON.stringify({
+          items: itemsToBuy,
+          total,
+          contactInfo: {
+            real_name: contact.realName,
+            class_name: contact.className,
+            note: contact.note,
+            email: contact.email,
+          },
+        }),
       });
 
       console.log('[CART] Response received!');
@@ -324,19 +232,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         
         console.error('[CART] Order submission failed:', response.status, errorData);
         
-        if (response.status === 401) {
-          toast.error('Authentication failed / 认证失败，请重新登录');
-        } else {
-          toast.error(`Order submission failed: ${errorData.error || errorData.message || 'Unknown error'} / 订单提交失败`);
-        }
+        toast.error(`Order submission failed: ${errorData.error || errorData.message || 'Unknown error'} / 订单提交失败`);
         return false;
       }
 
       const result = await response.json();
-      console.log('[CART] Order submitted successfully:', result);
-      console.log('[CART] ========== ORDER SUBMISSION COMPLETE ==========');
+      try {
+        const history = JSON.parse(localStorage.getItem('scls_local_orders') || '[]');
+        history.unshift({
+          orderNumber: result.orderNumber,
+          total,
+          createdAt: new Date().toISOString(),
+        });
+        localStorage.setItem('scls_local_orders', JSON.stringify(history.slice(0, 20)));
+      } catch {
+        /* ignore */
+      }
 
-      // 6. 清除已提交的商品
       setCartItems(prev => prev.filter(item => !selectedIds.has(item.id)));
       setSelectedIds(new Set());
       

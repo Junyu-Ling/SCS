@@ -1,16 +1,12 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useProfile } from '../contexts/ProfileContext';
 import { useProducts, getProductsByCategory, getProductsByTag, compareProductsByNewFirst, Product, clearProductsCache } from '../hooks/useProducts';
 import { useInventory } from '../hooks/useInventory';
-import { Package, Loader2 } from 'lucide-react';
 import { ProductCard } from './ProductCard';
 
 export default function ProductListPage() {
-  // Hook order: useLanguage, useProfile, useProducts, useInventory, useState, useEffect
   const { language, t } = useLanguage();
-  const { user, loading: authLoading } = useProfile();
-  const { products, loading: productsLoading } = useProducts();
+  const { products } = useProducts();
   const { isStocked } = useInventory();
   const [filterType, setFilterType] = useState<string>('all');
 

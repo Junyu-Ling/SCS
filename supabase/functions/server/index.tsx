@@ -327,7 +327,8 @@ async function sendEmailToAdmins(order: any) {
       <h1>收到新订单</h1>
       <p><strong>订单号：</strong>${escapeHtml(order.orderNumber || order.id)}</p>
       <p><strong>下单人：</strong>${escapeHtml(order.contactInfo?.real_name || 'N/A')} (${escapeHtml(order.userEmail)})</p>
-      <p><strong>班级：</strong>${escapeHtml(order.contactInfo?.class_name || '教师')}</p>
+      <p><strong>班级：</strong>${escapeHtml(order.contactInfo?.class_name || '未填写')}</p>
+      ${order.contactInfo?.note ? `<p><strong>留言：</strong>${escapeHtml(order.contactInfo.note)}</p>` : ''}
       <p><strong>合计：</strong>¥${Number(order.total).toFixed(2)}</p>
       <h2>商品</h2>
       <ul>${items}</ul>
@@ -997,33 +998,28 @@ app.post(`${BASE_PATH}/cart`, async (c) => {
 // ======================
 
 /**
- * POST /orders - 提交新预定
- * 需要登录
- * 创建新预定，清空购物车，发送邮件通知管理员
+ * POST /orders - 提交新预定（无需登录）
+ * 校验联系信息后创建预定，并邮件通知所有管理员
  */
 app.post(`${BASE_PATH}/orders`, async (c) => {
   console.log('[ORDER] Received order submission request');
   
-  // 先解析请求体
   const body = await c.req.json();
-  console.log('[ORDER] Request body received');
-  
-  // 传递 body 给 getUser 以获取 _auth_token
-  const user = await getUser(c.req.raw, body);
-  if (!user) {
-    console.error('[ORDER] Unauthorized: No valid user token');
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
-  console.log('[ORDER] User authenticated:', user.email);
-
   const { items, total, contactInfo } = body;
-  
-  console.log('[ORDER] Order details:', {
-    itemCount: items?.length,
-    total,
-    contactInfo
-  });
+  const email = normalizeEmail(contactInfo?.email);
+  const realName = String(contactInfo?.real_name ?? '').trim();
+  const className = String(contactInfo?.class_name ?? '').trim();
+  const note = String(contactInfo?.note ?? '').trim();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return c.json({ error: 'Valid email is required' }, 400);
+  }
+  if (!realName) {
+    return c.json({ error: 'Real name is required' }, 400);
+  }
+  if (!className) {
+    return c.json({ error: 'Class is required' }, 400);
+  }
 
   if (!items || items.length === 0) {
     console.error('[ORDER] No items in order');
@@ -1051,33 +1047,32 @@ app.post(`${BASE_PATH}/orders`, async (c) => {
   
   // 创建预定对象
   const timestamp = Date.now();
-  const orderId = `${user.id}:${timestamp}`;
+  const guestKey = email.replace(/[^a-z0-9@._-]/g, '_');
+  const orderId = `guest:${guestKey}:${timestamp}`;
   const orderKey = `order:${orderId}`;
   
   const order = {
     id: orderId,
-    orderNumber, // 新增：用于显示的预定号
-    userId: user.id,
-    userEmail: user.email,
+    orderNumber,
+    userId: `guest:${guestKey}`,
+    userEmail: email,
     items,
     total,
-    status: 'pending', // 默认状态为待处理
+    status: 'pending',
     createdAt: new Date().toISOString(),
-    contactInfo // 联系信息（姓名、班级等）
+    contactInfo: {
+      real_name: realName,
+      class_name: className,
+      note,
+      email,
+    },
   };
 
   console.log('[ORDER] Saving order to KV store:', orderKey);
-
-  // 保存订单到 KV 存储
   await kv.set(orderKey, order);
-  
   console.log('[ORDER] Order saved successfully');
-  
-  // 清空用户购物车
-  await kv.del(`cart:${user.id}`);
-  console.log('[ORDER] Cart cleared');
 
-  // 异��发送邮件通知管理员（不阻塞响应）
+  // 异步发送邮件通知管理员（不阻塞响应）
   sendEmailToAdmins(order).catch(e => console.error('[ORDER] Email send failed:', e));
 
   console.log('[ORDER] Returning success response');

@@ -6,6 +6,7 @@ import { useCart } from '../contexts/CartContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import CheckoutProfileDialog from './CheckoutProfileDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,6 @@ import {
 } from './ui/dropdown-menu';
 import { useProducts } from '../hooks/useProducts';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { toast } from 'sonner';
 
 export default function Navbar() {
   // Stable hook order: contexts, states, refs, effects
@@ -26,6 +26,7 @@ export default function Navbar() {
   const [searchValue, setSearchValue] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { products } = useProducts();
@@ -55,15 +56,6 @@ export default function Navbar() {
   }).slice(0, 5) : []; // 最多显示5个结果
 
   const handleSearchChange = (value: string) => {
-    if (!user) {
-      // 显示提示并立即跳转到登录页面
-      toast.error(t(
-        'Please log in to use the search function',
-        '请登录后使用搜索功能'
-      ));
-      window.location.hash = '/login';
-      return;
-    }
     setSearchValue(value);
     setShowSearchResults(value.trim().length > 0);
   };
@@ -80,15 +72,6 @@ export default function Navbar() {
   };
 
   const handleCartClick = () => {
-    if (!user) {
-      // 显示提示并立即跳转到登录页面
-      toast.error(t(
-        'Please log in to view your shopping cart',
-        '请登录后查看购物车'
-      ));
-      window.location.hash = '/login';
-      return;
-    }
     setIsCartOpen(true);
   };
 
@@ -198,8 +181,7 @@ export default function Navbar() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-0.5 sm:gap-1">
-          {/* User Menu */}
-          {user ? (
+          {isAdmin && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#F3F4F6] text-[#111111] rounded-xl">
@@ -219,24 +201,18 @@ export default function Navbar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.hash = '/profile'}>
+                <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
                   <User className="mr-2 h-4 w-4" />
-                  <span>{t('Profile Settings', '个人设置')}</span>
+                  <span>{t('Checkout details', '下单信息')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => window.location.hash = '/chat'}>
                   <MessageSquare className="mr-2 h-4 w-4" />
                   <span>{t('Contact Us', '联系我们')}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.location.hash = '/orders'}>
-                  <Package className="mr-2 h-4 w-4" />
-                  <span>{t('My Reservations', '我的预定')}</span>
+                <DropdownMenuItem onClick={() => window.location.hash = '/admin'}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>{t('Admin Dashboard', '管理员后台')}</span>
                 </DropdownMenuItem>
-                {isAdmin && (
-                  <DropdownMenuItem onClick={() => window.location.hash = '/admin'}>
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>{t('Admin Dashboard', '管理员后台')}</span>
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -248,9 +224,9 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => window.location.hash = '/login'}
+              onClick={() => setProfileDialogOpen(true)}
               className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#F3F4F6] text-[#111111] rounded-xl"
-              title={t('Login', '登录')}
+              title={t('Checkout details', '下单信息')}
             >
               <User className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
@@ -284,6 +260,7 @@ export default function Navbar() {
           </Button>
         </div>
       </div>
+      <CheckoutProfileDialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen} />
     </nav>
   );
 }

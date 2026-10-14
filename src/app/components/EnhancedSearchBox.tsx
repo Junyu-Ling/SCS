@@ -1,7 +1,6 @@
 import { Search, X, Clock, Filter, DollarSign, Tag } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useProfile } from '../contexts/ProfileContext';
 import { useProducts, Product } from '../hooks/useProducts';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Input } from './ui/input';
@@ -17,7 +16,6 @@ interface SearchBoxProps {
 
 export default function EnhancedSearchBox({ className }: SearchBoxProps) {
   const { language, t } = useLanguage();
-  const { user } = useProfile();
   const { products } = useProducts();
   const [searchValue, setSearchValue] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -70,11 +68,6 @@ export default function EnhancedSearchBox({ className }: SearchBoxProps) {
   }).slice(0, 8); // 限制结果数量
 
   const handleSearch = (value: string) => {
-    if (!user) {
-      toast.error(t('Please log in to use the search function', '请登录后使用搜索功能'));
-      setTimeout(() => { window.location.hash = '/login'; }, 1500);
-      return;
-    }
     setSearchValue(value);
     setShowResults(value.trim().length > 0 || showFilters);
   };

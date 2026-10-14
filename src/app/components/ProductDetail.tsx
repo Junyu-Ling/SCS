@@ -2,20 +2,17 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Minus, HelpCircle, Package, Loader2, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
-import { useProfile } from '../contexts/ProfileContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
 import { useProduct } from '../hooks/useProducts';
 import { useInventory } from '../hooks/useInventory';
-import { toast } from 'sonner';
 import { OptimizedImage } from './OptimizedImage';
 
 export default function ProductDetail() {
   const { language, t } = useLanguage();
   const { addToCart } = useCart();
-  const { user } = useProfile();
   const { isStocked } = useInventory();
   
   // Get product ID from URL query parameters
@@ -114,10 +111,6 @@ export default function ProductDetail() {
   };
 
   const handleAddToCart = () => {
-    if (!user) {
-      toast.error(t('Please log in to add items to your cart.', '请登录以将商品添加到购物车。'));
-      return;
-    }
     addToCart({
       commodityId: productData.id,
       name: language === 'en' ? productData.name.en : productData.name.cn,
