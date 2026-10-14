@@ -13,6 +13,8 @@ const STORAGE_KEY = 'scls_checkout_profile';
 
 export interface CheckoutProfile {
   email: string;
+  /** 邮箱已通过验证码验证；一旦为 true，这台设备上的邮箱就被绑定，不能再修改 */
+  emailVerified: boolean;
   realName: string;
   className: string;
   note: string;
@@ -20,6 +22,7 @@ export interface CheckoutProfile {
 
 const EMPTY_PROFILE: CheckoutProfile = {
   email: '',
+  emailVerified: false,
   realName: '',
   className: '',
   note: '',
@@ -28,6 +31,8 @@ const EMPTY_PROFILE: CheckoutProfile = {
 interface CheckoutProfileContextType {
   checkoutProfile: CheckoutProfile;
   saveCheckoutProfile: (profile: CheckoutProfile) => void;
+  /** 验证码校验通过后调用：保存当前填写内容，并把邮箱绑定在这台设备上 */
+  bindVerifiedEmail: (profile: CheckoutProfile) => void;
   isCheckoutProfileComplete: (profile?: CheckoutProfile) => boolean;
 }
 
@@ -40,6 +45,7 @@ function readStoredProfile(): CheckoutProfile {
     const parsed = JSON.parse(raw) as Partial<CheckoutProfile>;
     return {
       email: typeof parsed.email === 'string' ? parsed.email : '',
+      emailVerified: parsed.emailVerified === true && typeof parsed.email === 'string' && parsed.email !== '',
       realName: typeof parsed.realName === 'string' ? parsed.realName : '',
       className: typeof parsed.className === 'string' ? parsed.className : '',
       note: typeof parsed.note === 'string' ? parsed.note : '',
@@ -54,7 +60,7 @@ export function isCheckoutProfileComplete(profile: CheckoutProfile): boolean {
   const name = profile.realName.trim();
   const className = profile.className.trim();
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  return emailOk && name.length > 0 && className.length > 0;
+  return emailOk && profile.emailVerified && name.length > 0 && className.length > 0;
 }
 
 function profileIsComplete(profile: CheckoutProfile): boolean {
@@ -68,22 +74,40 @@ export function CheckoutProfileProvider({ children }: { children: ReactNode }) {
     setCheckoutProfile(readStoredProfile());
   }, []);
 
-  const saveCheckoutProfile = useCallback((profile: CheckoutProfile) => {
-    const next: CheckoutProfile = {
-      email: profile.email.trim().toLowerCase(),
-      realName: profile.realName.trim(),
-      className: profile.className.trim(),
-      note: profile.note.trim(),
-    };
+  const persist = useCallback((next: CheckoutProfile) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     setCheckoutProfile(next);
   }, []);
+
+  const saveCheckoutProfile = useCallback((profile: CheckoutProfile) => {
+    // 邮箱一旦验证绑定，就只能沿用已绑定的那个；未验证时无法通过保存把状态改成"已验证"
+    const stored = readStoredProfile();
+    const locked = stored.emailVerified && stored.email !== '';
+    persist({
+      email: locked ? stored.email : profile.email.trim().toLowerCase(),
+      emailVerified: locked,
+      realName: profile.realName.trim(),
+      className: profile.className.trim(),
+      note: profile.note.trim(),
+    });
+  }, [persist]);
+
+  const bindVerifiedEmail = useCallback((profile: CheckoutProfile) => {
+    persist({
+      email: profile.email.trim().toLowerCase(),
+      emailVerified: true,
+      realName: profile.realName.trim(),
+      className: profile.className.trim(),
+      note: profile.note.trim(),
+    });
+  }, [persist]);
 
   return (
     <CheckoutProfileContext.Provider
       value={{
         checkoutProfile,
         saveCheckoutProfile,
+        bindVerifiedEmail,
         isCheckoutProfileComplete: (profile?: CheckoutProfile) =>
           profileIsComplete(profile ?? checkoutProfile),
       }}

@@ -53,21 +53,23 @@ export default function Cart() {
       return;
     }
     setDraft(checkoutProfile);
-    setDraft(checkoutProfile);
-    setDraft(checkoutProfile);
-    setDraft(checkoutProfile);
     setCheckoutStep(true);
   };
 
   const handleSubmit = async () => {
-    if (!isCheckoutProfileComplete(draft)) {
-      toast.error(t('Please fill in name, email, and class', '请填写真实姓名、邮箱和班级'));
+    // 邮箱已验证绑定后，下单一律使用绑定的那个邮箱
+    const contact: CheckoutProfile = checkoutProfile.emailVerified
+      ? { ...draft, email: checkoutProfile.email, emailVerified: true }
+      : draft;
+
+    if (!isCheckoutProfileComplete(contact)) {
+      toast.error(t('Please complete your details and verify your email', '请填写完整信息并完成邮箱验证'));
       return;
     }
 
     setSubmitting(true);
-    saveCheckoutProfile(draft);
-    const ok = await submitOrder(draft);
+    saveCheckoutProfile(contact);
+    const ok = await submitOrder(contact);
     setSubmitting(false);
     if (ok) {
       setCheckoutStep(false);

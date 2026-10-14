@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
 
-const API = `https://${projectId}.supabase.co/functions/v1/make-server-c4f5ade4`;
+// 在线人数由 Vercel 函数 /api/stats 统计（见 api/stats.ts）
+const API = '/api';
 const STORAGE_KEY = 'scls_visitor_id';
 
 function getVisitorId() {
@@ -33,12 +33,9 @@ export default function VisitorStats() {
 
     const ping = async () => {
       try {
-        const res = await fetch(`${API}/stats/heartbeat`, {
+        const res = await fetch(`${API}/stats`, {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ visitorId }),
         });
         if (!res.ok) return;

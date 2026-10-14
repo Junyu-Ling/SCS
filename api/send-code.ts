@@ -1,0 +1,73 @@
+import { randomInt } from 'node:crypto';
+import { command } from './_lib/redis';
+import { mailConfigured, sendMail } from './_lib/mail';
+import { EMAIL_RE, clientIp, normalizeEmail, readBody } from './_lib/http';
+
+// POST { email } -> 给该邮箱发 6 位验证码（10 分钟有效，同一邮箱 60 秒内只能发一次，同一 IP 每小时最多 20 次）
+
+const CODE_TTL_SECONDS = 600;
+const COOLDOWN_SECONDS = 60;
+const IP_LIMIT_PER_HOUR = 20;
+
+export default async function handler(req: any, res: any) {
+  res.setHeader('Cache-Control', 'no-store');
+
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  const email = normalizeEmail(readBody(req)?.email);
+  if (!EMAIL_RE.test(email) || email.length > 200) {
+    res.status(400).json({ error: 'Please enter a valid email / 请输入有效邮箱' });
+    return;
+  }
+
+  try {
+    const ipKey = `code:ip:${clientIp(req)}`;
+    const ipCount = Number(await command('INCR', ipKey));
+    if (ipCount === 1) await command('EXPIRE', ipKey, 3600);
+    if (ipCount > IP_LIMIT_PER_HOUR) {
+      res.status(429).json({ error: 'Too many requests, try again later / 请求过于频繁，请稍后再试' });
+      return;
+    }
+
+    const cooldown = await command('SET', `code:cooldown:${email}`, '1', 'EX', COOLDOWN_SECONDS, 'NX');
+    if (cooldown === null) {
+      res.status(429).json({ error: 'Please wait a minute before requesting another code / 请 1 分钟后再重新获取验证码' });
+      return;
+    }
+
+    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
+    await command('SET', `code:${email}`, JSON.stringify({ code, attempts: 0 }), 'EX', CODE_TTL_SECONDS);
+
+    if (!mailConfigured()) {
+      // 本地开发没配发信服务时，把验证码打在终端里，方便调试；线上（有 VERCEL 变量）绝不返回验证码
+      if (!process.env.VERCEL) {
+        console.log(`[send-code] (dev, no mail transport) ${email} -> ${code}`);
+        res.status(200).json({ ok: true, devCode: code });
+        return;
+      }
+      res.status(503).json({ error: 'Email service is not configured / 邮件服务尚未配置' });
+      return;
+    }
+
+    await sendMail({
+      to: email,
+      subject: `SCLS Campus Shop 验证码 / Verification code: ${code}`,
+      text: `Your SCLS Campus Shop verification code is ${code}. It expires in 10 minutes.\n您的 SCLS Campus Shop 验证码是 ${code}，10 分钟内有效。`,
+      html: `
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;max-width:420px;margin:0 auto;padding:24px;color:#000">
+          <h2 style="margin:0 0 12px;color:#174D3D">SCLS Campus Shop</h2>
+          <p style="margin:0 0 16px;color:#4A5E55">Your verification code / 您的验证码</p>
+          <p style="margin:0 0 16px;font-size:34px;letter-spacing:10px;font-weight:700;color:#174D3D">${code}</p>
+          <p style="margin:0;font-size:12px;color:#4A5E55">Valid for 10 minutes. If this wasn't you, you can ignore this email.<br/>10 分钟内有效。如果不是您本人操作，请忽略这封邮件。</p>
+        </div>`,
+    });
+
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error('[send-code]', error);
+    res.status(500).json({ error: 'Failed to send the code, please try again / 验证码发送失败，请稍后重试' });
+  }
+}

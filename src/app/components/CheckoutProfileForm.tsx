@@ -1,5 +1,13 @@
-import { CHECKOUT_CLASSES, type CheckoutProfile } from '../contexts/CheckoutProfileContext';
+import { useEffect, useState } from 'react';
+import { BadgeCheck } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  CHECKOUT_CLASSES,
+  useCheckoutProfile,
+  type CheckoutProfile,
+} from '../contexts/CheckoutProfileContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
@@ -17,20 +25,99 @@ type CheckoutProfileFormProps = {
   showNote?: boolean;
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const RESEND_SECONDS = 60;
+
+async function postJson(path: string, body: unknown) {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, data } as { ok: boolean; data: { error?: string; devCode?: string } };
+}
+
 export default function CheckoutProfileForm({
   value,
   onChange,
   showNote = true,
 }: CheckoutProfileFormProps) {
   const { t } = useLanguage();
+  const { checkoutProfile, bindVerifiedEmail } = useCheckoutProfile();
+
+  // 邮箱一旦验证就绑定在这台设备上，输入框锁定
+  const locked = checkoutProfile.emailVerified && checkoutProfile.email !== '';
+  const emailValue = locked ? checkoutProfile.email : value.email;
+
+  const [code, setCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   const update = (patch: Partial<CheckoutProfile>) => {
     onChange({ ...value, ...patch });
   };
 
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
+
+  const emailLooksValid = EMAIL_RE.test(emailValue.trim());
+
+  const handleEmailChange = (next: string) => {
+    update({ email: next, emailVerified: false });
+    setCodeSent(false);
+    setCode('');
+  };
+
+  const handleSendCode = async () => {
+    if (!emailLooksValid || sending || cooldown > 0) return;
+    setSending(true);
+    try {
+      const { ok, data } = await postJson('/api/send-code', { email: emailValue.trim() });
+      if (!ok) {
+        toast.error(data.error || t('Failed to send the code', '验证码发送失败'));
+        return;
+      }
+      setCodeSent(true);
+      setCooldown(RESEND_SECONDS);
+      toast.success(t('Code sent, please check your inbox', '验证码已发送，请查收邮箱'));
+      if (data.devCode) toast.info(`Dev code: ${data.devCode}`);
+    } catch {
+      toast.error(t('Network error, please try again', '网络异常，请稍后重试'));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!/^\d{6}$/.test(code) || verifying) return;
+    setVerifying(true);
+    try {
+      const { ok, data } = await postJson('/api/verify-code', { email: emailValue.trim(), code });
+      if (!ok) {
+        toast.error(data.error || t('Verification failed', '验证失败'));
+        return;
+      }
+      bindVerifiedEmail({ ...value, email: emailValue.trim() });
+      onChange({ ...value, email: emailValue.trim().toLowerCase(), emailVerified: true });
+      setCodeSent(false);
+      setCode('');
+      toast.success(t('Email verified and bound to this device', '邮箱已验证，并绑定到这台设备'));
+    } catch {
+      toast.error(t('Network error, please try again', '网络异常，请稍后重试'));
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   return (
-    <div className="space-y-4 text-left">
-      <div className="space-y-1.5">
+    <div className="flex flex-col gap-4 text-left">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="checkout-name">{t('Real name', '真实姓名')}</Label>
         <Input
           id="checkout-name"
@@ -41,19 +128,84 @@ export default function CheckoutProfileForm({
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="checkout-email">{t('Email', '邮箱')}</Label>
-        <Input
-          id="checkout-email"
-          type="email"
-          value={value.email}
-          onChange={(e) => update({ email: e.target.value })}
-          placeholder="name@example.com"
-          className="h-10 rounded-xl"
-        />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="checkout-email">{t('Email', '邮箱')}</Label>
+          {locked ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-[#174D3D]">
+              <BadgeCheck className="h-3.5 w-3.5" />
+              {t('Verified', '已验证')}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Input
+            id="checkout-email"
+            type="email"
+            value={emailValue}
+            disabled={locked}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            placeholder="name@example.com"
+            className="h-10 min-w-0 flex-1 rounded-xl disabled:bg-[#EEF4F1] disabled:text-[#174D3D] disabled:opacity-100"
+          />
+          {!locked ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSendCode}
+              disabled={!emailLooksValid || sending || cooldown > 0}
+              className="h-10 shrink-0 rounded-xl border-[#174D3D] px-3 text-[#174D3D] hover:bg-[#EEF4F1]"
+            >
+              {cooldown > 0
+                ? `${cooldown}s`
+                : codeSent
+                  ? t('Resend', '重新发送')
+                  : t('Send code', '发送验证码')}
+            </Button>
+          ) : null}
+        </div>
+
+        {locked ? (
+          <p className="text-xs leading-[1.6] text-[#4A5E55]">
+            {t(
+              'This email is verified and bound to this device. It can no longer be changed.',
+              '该邮箱已验证并绑定在这台设备上，不能再修改。'
+            )}
+          </p>
+        ) : (
+          <p className="text-xs leading-[1.6] text-[#4A5E55]">
+            {t(
+              'Verify your email with a code. Once verified it is bound and cannot be changed.',
+              '需要通过验证码验证邮箱，验证后将被绑定，之后不能再修改。'
+            )}
+          </p>
+        )}
+
+        {!locked && codeSent ? (
+          <div className="flex items-center gap-2 pt-1">
+            <Input
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              placeholder={t('6-digit code', '6 位验证码')}
+              className="h-10 min-w-0 flex-1 rounded-xl tracking-[0.3em]"
+            />
+            <Button
+              type="button"
+              onClick={handleVerify}
+              disabled={code.length !== 6 || verifying}
+              className="h-10 shrink-0 rounded-xl px-4"
+            >
+              {t('Verify', '验证')}
+            </Button>
+          </div>
+        ) : null}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="checkout-class">{t('Class', '班级')}</Label>
         <Select value={value.className || undefined} onValueChange={(className) => update({ className })}>
           <SelectTrigger id="checkout-class" className="h-10 rounded-xl">
@@ -70,7 +222,7 @@ export default function CheckoutProfileForm({
       </div>
 
       {showNote ? (
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="checkout-note">
             {t('Note (optional)', '留言（可选）')}
           </Label>

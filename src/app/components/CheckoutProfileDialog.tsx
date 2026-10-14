@@ -37,7 +37,7 @@ export default function CheckoutProfileDialog({
 
   const handleSave = () => {
     if (!isCheckoutProfileComplete(draft)) {
-      toast.error(t('Please fill in name, email, and class', '请填写真实姓名、邮箱和班级'));
+      toast.error(t('Please complete your details and verify your email', '请填写完整信息并完成邮箱验证'));
       return;
     }
     saveCheckoutProfile(draft);
