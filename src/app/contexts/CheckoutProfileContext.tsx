@@ -39,6 +39,7 @@ interface CheckoutProfileContextType {
 const CheckoutProfileContext = createContext<CheckoutProfileContextType | undefined>(undefined);
 
 // 只允许学校邮箱：@scls-sh.org（老师）或 @stu.scls-sh.org（学生）
+export const SCHOOL_EMAIL_DOMAINS = ['stu.scls-sh.org', 'scls-sh.org'] as const;
 export const SCHOOL_EMAIL_RE = /^[^\s@]+@(stu\.)?scls-sh\.org$/;
 
 function readStoredProfile(): CheckoutProfile {

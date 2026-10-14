@@ -3,6 +3,7 @@ import { BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   CHECKOUT_CLASSES,
+  SCHOOL_EMAIL_DOMAINS,
   SCHOOL_EMAIL_RE,
   useCheckoutProfile,
   type CheckoutProfile,
@@ -48,7 +49,15 @@ export default function CheckoutProfileForm({
 
   // 邮箱一旦验证就绑定在这台设备上，输入框锁定
   const locked = checkoutProfile.emailVerified && checkoutProfile.email !== '';
-  const emailValue = locked ? checkoutProfile.email : value.email;
+
+  // 邮箱 = 用户名 + 下拉选择的学校后缀
+  const [local, setLocal] = useState(() => (value.email.split('@')[0] ?? '').trim());
+  const [domain, setDomain] = useState<string>(() => {
+    const d = value.email.split('@')[1]?.trim().toLowerCase();
+    return SCHOOL_EMAIL_DOMAINS.find((item) => item === d) ?? SCHOOL_EMAIL_DOMAINS[0];
+  });
+  const composedEmail = local ? `${local}@${domain}` : '';
+  const emailValue = locked ? checkoutProfile.email : composedEmail;
 
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
@@ -69,8 +78,11 @@ export default function CheckoutProfileForm({
   const emailIsSchool = SCHOOL_EMAIL_RE.test(emailValue.trim().toLowerCase());
   const emailLooksValid = emailIsSchool;
 
-  const handleEmailChange = (next: string) => {
-    update({ email: next, emailVerified: false });
+  const handleEmailChange = (nextLocal: string, nextDomain: string) => {
+    const cleanLocal = nextLocal.split('@')[0].replace(/\s/g, '');
+    setLocal(cleanLocal);
+    setDomain(nextDomain);
+    update({ email: cleanLocal ? `${cleanLocal}@${nextDomain}` : '', emailVerified: false });
     setCodeSent(false);
     setCode('');
   };
@@ -131,32 +143,56 @@ export default function CheckoutProfileForm({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2">
+        {locked ? (
           <Input
             id="checkout-email"
-            type="email"
             value={emailValue}
-            disabled={locked}
-            onChange={(e) => handleEmailChange(e.target.value)}
-            placeholder="name@stu.scls-sh.org"
-            className="h-10 min-w-0 flex-1 rounded-xl disabled:bg-[#EEF4F1] disabled:text-[#174D3D] disabled:opacity-100"
+            disabled
+            className="h-10 min-w-0 rounded-xl disabled:bg-[#EEF4F1] disabled:text-[#174D3D] disabled:opacity-100"
           />
-          {!locked ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleSendCode}
-              disabled={!emailLooksValid || sending || cooldown > 0}
-              className="h-10 shrink-0 rounded-xl border-[#174D3D] px-3 text-[#174D3D] hover:bg-[#EEF4F1]"
-            >
-              {cooldown > 0
-                ? `${cooldown}s`
-                : codeSent
-                  ? t('Resend', '重新发送')
-                  : t('Send code', '发送验证码')}
-            </Button>
-          ) : null}
-        </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Input
+              id="checkout-email"
+              value={local}
+              autoComplete="username"
+              onChange={(e) => handleEmailChange(e.target.value, domain)}
+              placeholder={t('Username', '邮箱用户名')}
+              className="h-10 min-w-0 flex-1 rounded-xl"
+            />
+            <Select value={domain} onValueChange={(next) => handleEmailChange(local, next)}>
+              <SelectTrigger
+                aria-label={t('Email domain', '邮箱后缀')}
+                className="h-10 w-[172px] shrink-0 rounded-xl"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SCHOOL_EMAIL_DOMAINS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    @{item}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {!locked ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSendCode}
+            disabled={!emailLooksValid || sending || cooldown > 0}
+            className="h-10 w-full rounded-xl border-[#174D3D] text-[#174D3D] hover:bg-[#EEF4F1]"
+          >
+            {cooldown > 0
+              ? t(`Resend in ${cooldown}s`, `${cooldown} 秒后可重新发送`)
+              : codeSent
+                ? t('Resend code', '重新发送验证码')
+                : t('Send code', '发送验证码')}
+          </Button>
+        ) : null}
 
         {locked ? (
           <p className="text-xs leading-[1.6] text-[#4A5E55]">
@@ -168,8 +204,8 @@ export default function CheckoutProfileForm({
         ) : (
           <p className="text-xs leading-[1.6] text-[#4A5E55]">
             {t(
-              'Use your @stu.scls-sh.org or @scls-sh.org email. Verify it first, then fill in the rest. Once verified it is bound and cannot be changed.',
-              '请使用 @stu.scls-sh.org 或 @scls-sh.org 邮箱。先验证邮箱，再填写其他信息；验证后将被绑定，不能再修改。'
+              'Students use @stu.scls-sh.org, teachers use @scls-sh.org. Verify it first, then fill in the rest. Once verified it is bound and cannot be changed.',
+              '学生选 @stu.scls-sh.org，老师选 @scls-sh.org。先验证邮箱，再填写其他信息；验证后将被绑定，不能再修改。'
             )}
           </p>
         )}
