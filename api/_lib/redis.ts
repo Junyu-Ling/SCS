@@ -38,9 +38,11 @@ function memExec(cmd: Command): unknown {
       memory.set(key, { value: String(rest[1]), expiresAt });
       return 'OK';
     }
-    case 'DEL':
-      memory.delete(key);
-      return 1;
+    case 'DEL': {
+      let removed = 0;
+      for (const k of rest) if (memory.delete(String(k))) removed += 1;
+      return removed;
+    }
     case 'INCR': {
       const current = Number(memGet(key)?.value ?? 0) + 1;
       const prev = memGet(key);
@@ -55,10 +57,51 @@ function memExec(cmd: Command): unknown {
     case 'SADD': {
       const set = (memGet(key)?.value as Set<string> | undefined) ?? new Set<string>();
       const before = set.size;
-      set.add(String(rest[1]));
+      for (const member of rest.slice(1)) set.add(String(member));
       memory.set(key, { value: set });
       return set.size - before;
     }
+    case 'SREM': {
+      const set = memGet(key)?.value as Set<string> | undefined;
+      if (!set) return 0;
+      let removed = 0;
+      for (const member of rest.slice(1)) if (set.delete(String(member))) removed += 1;
+      return removed;
+    }
+    case 'SMEMBERS':
+      return [...((memGet(key)?.value as Set<string> | undefined) ?? [])];
+    case 'SISMEMBER':
+      return (memGet(key)?.value as Set<string> | undefined)?.has(String(rest[1])) ? 1 : 0;
+    case 'HSET': {
+      const hash = (memGet(key)?.value as Map<string, string> | undefined) ?? new Map<string, string>();
+      let added = 0;
+      for (let i = 1; i + 1 < rest.length; i += 2) {
+        if (!hash.has(String(rest[i]))) added += 1;
+        hash.set(String(rest[i]), String(rest[i + 1]));
+      }
+      memory.set(key, { value: hash });
+      return added;
+    }
+    case 'HGET':
+      return (memGet(key)?.value as Map<string, string> | undefined)?.get(String(rest[1])) ?? null;
+    case 'HMGET': {
+      const hash = memGet(key)?.value as Map<string, string> | undefined;
+      return rest.slice(1).map((field) => hash?.get(String(field)) ?? null);
+    }
+    case 'HGETALL': {
+      // 与 Upstash REST 一致：返回 [field, value, field, value, ...]
+      const hash = memGet(key)?.value as Map<string, string> | undefined;
+      return hash ? [...hash.entries()].flat() : [];
+    }
+    case 'HDEL': {
+      const hash = memGet(key)?.value as Map<string, string> | undefined;
+      if (!hash) return 0;
+      let removed = 0;
+      for (const field of rest.slice(1)) if (hash.delete(String(field))) removed += 1;
+      return removed;
+    }
+    case 'HLEN':
+      return ((memGet(key)?.value as Map<string, string> | undefined)?.size ?? 0) as number;
     case 'SCARD':
       return ((memGet(key)?.value as Set<string> | undefined)?.size ?? 0) as number;
     case 'ZADD': {

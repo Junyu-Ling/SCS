@@ -1,8 +1,8 @@
 import { randomInt } from 'node:crypto';
-import { command } from './_lib/redis';
-import { mailConfigured, sendMail } from './_lib/mail';
-import { renderVerifyEmail } from './_lib/mailTemplates';
-import { EMAIL_RE, SCHOOL_EMAIL_RE, clientIp, normalizeEmail, readBody } from './_lib/http';
+import { command } from './_lib/redis.js';
+import { mailConfigured, sendMail } from './_lib/mail.js';
+import { renderVerifyEmail } from './_lib/mailTemplates.js';
+import { EMAIL_RE, SCHOOL_EMAIL_RE, clientIp, normalizeEmail, readBody } from './_lib/http.js';
 
 // POST { email } -> 给该邮箱发 6 位验证码（10 分钟有效，同一邮箱 60 秒内只能发一次，同一 IP 每小时最多 20 次）
 

@@ -1,16 +1,10 @@
-import { timingSafeEqual } from 'node:crypto';
-import { command } from './_lib/redis';
-import { EMAIL_RE, SCHOOL_EMAIL_RE, normalizeEmail, readBody } from './_lib/http';
+import { EMAIL_RE, SCHOOL_EMAIL_RE, normalizeEmail, readBody } from './_lib/http.js';
+import { authConfigured, signToken, VERIFY_TOKEN_SECONDS } from './_lib/auth.js';
+import { checkCode } from './_lib/otp.js';
 
-// POST { email, code } -> 校验验证码，每个验证码最多尝试 5 次，成功后立即作废
-
-const MAX_ATTEMPTS = 5;
-
-function safeEqual(a: string, b: string): boolean {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  return left.length === right.length && timingSafeEqual(left, right);
-}
+// POST { email, code } -> 校验验证码，每个验证码最多尝试 5 次，成功后立即作废。
+// 成功时额外返回 verifyToken：HMAC 签名的"已验证邮箱"令牌（30 天），
+// 前端保存在设备上，下单 / 查看自己的订单时出示，服务端据此确认邮箱确实验证过。
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store');
@@ -30,30 +24,22 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const key = `code:${email}`;
-    const raw = await command('GET', key);
-    if (!raw) {
-      res.status(400).json({ error: 'Code expired, please request a new one / 验证码已过期，请重新获取' });
+    if (!authConfigured()) {
+      res.status(503).json({ error: 'Server auth is not configured / 服务端未配置 AUTH_SECRET' });
       return;
     }
 
-    const record = JSON.parse(String(raw)) as { code: string; attempts: number };
-
-    if (record.attempts >= MAX_ATTEMPTS) {
-      await command('DEL', key);
-      res.status(429).json({ error: 'Too many attempts, please request a new code / 尝试次数过多，请重新获取验证码' });
+    const result = await checkCode(email, code);
+    if (!result.ok) {
+      res.status(result.status).json({ error: result.error });
       return;
     }
 
-    if (!safeEqual(record.code, code)) {
-      const ttl = 600;
-      await command('SET', key, JSON.stringify({ ...record, attempts: record.attempts + 1 }), 'EX', ttl);
-      res.status(400).json({ error: 'Wrong code, please try again / 验证码错误，请重试' });
-      return;
-    }
-
-    await command('DEL', key);
-    res.status(200).json({ ok: true, email });
+    res.status(200).json({
+      ok: true,
+      email,
+      verifyToken: signToken('verify', email, VERIFY_TOKEN_SECONDS),
+    });
   } catch (error) {
     console.error('[verify-code]', error);
     res.status(500).json({ error: 'Verification failed, please try again / 验证失败，请稍后重试' });

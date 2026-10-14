@@ -1,10 +1,10 @@
-import { mailConfigured, sendMail } from './mail';
+import { mailConfigured, sendMail } from './mail.js';
 import {
   ADMIN_NOTIFY_EMAILS,
   renderAdminOrderNotificationEmail,
   renderOrderConfirmationEmail,
   type MailOrder,
-} from './mailTemplates';
+} from './mailTemplates.js';
 
 export type OrderMailResult = {
   // 未配置发信服务时为 true（只记录日志，不发送）

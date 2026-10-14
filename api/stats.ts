@@ -1,5 +1,5 @@
-import { pipeline } from './_lib/redis';
-import { readBody } from './_lib/http';
+import { pipeline } from './_lib/redis.js';
+import { readBody } from './_lib/http.js';
 
 // 累计访问 / 当前在线：
 //   POST { visitorId } 心跳（前端每 25 秒一次），GET 只读。
