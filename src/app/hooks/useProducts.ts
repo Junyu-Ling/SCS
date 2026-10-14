@@ -201,7 +201,9 @@ async function fetchFromAPI(): Promise<Product[]> {
       }
 
       const data = await response.json();
-      return mergeLocalOnlyProducts((data.products || []).map(finalizeProduct));
+      // 只认代码目录里的商品 ID：接口 / 旧缓存里多出来的"幽灵商品"一律丢弃
+      const known = ((data.products || []) as Product[]).filter((p) => CATALOG_BY_ID[p.id]);
+      return mergeLocalOnlyProducts(known.map(finalizeProduct));
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
       console.warn(`[PRODUCTS] Fetch attempt ${attempt}/${MAX_RETRIES} failed:`, lastError.message);
@@ -397,7 +399,7 @@ export function clearProductsCache() {
  */
 export function useProduct(id: number) {
   const getInitial = (): Product | null => {
-    if (!id) return null;
+    if (!id || !CATALOG_BY_ID[id]) return null;
     const cached = singleProductCache.get(id);
     if (cached) return finalizeProduct(cached.data);
     if (productsCache?.data) {
@@ -413,7 +415,7 @@ export function useProduct(id: number) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchProduct = useCallback(async () => {
-    if (!id) { setLoading(false); return; }
+    if (!id || !CATALOG_BY_ID[id]) { setLoading(false); return; }
 
     try {
       const response = await fetch(`${API_BASE}/products/${id}`, {

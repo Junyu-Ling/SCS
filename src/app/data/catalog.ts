@@ -39,7 +39,7 @@ export const CATALOG: CatalogEntry[] = [
     options: { Blue: 20, 'Dark Green': 20, Khaki: 20, Teal: 20 },
   },
   {
-    id: 13,
+    id: 1,
     name: { en: 'Crew Neck Sweatshirt', cn: '圆领卫衣' },
     description: {
       en: 'Classic crew neck sweatshirt, comfortable cotton fabric, perfect for daily wear.',
@@ -47,12 +47,12 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 140.0,
     category: 'apparel',
-    tags: ['apparel', 'new'],
+    tags: ['apparel', 'hot'],
     available: true,
-    options: { S: 7, M: 3, L: 1, XL: 1 },
+    options: { S: 20, M: 25, L: 20, XL: 15 },
   },
   {
-    id: 2,
+    id: 15,
     name: { en: 'Hooded Sweatshirt', cn: '连帽卫衣' },
     description: {
       en: 'Warm and cozy hoodie with SCLS logo, perfect for cooler weather.',
@@ -62,10 +62,10 @@ export const CATALOG: CatalogEntry[] = [
     category: 'apparel',
     tags: ['apparel', 'hot'],
     available: true,
-    options: { S: 0, M: 0, L: 5, XL: 1 },
+    options: { S: 0, M: 0, L: 0, XL: 0 },
   },
   {
-    id: 14,
+    id: 2,
     name: { en: 'Hooded Zip-up Sweatshirt', cn: '连帽拉链卫衣' },
     description: {
       en: 'Warm and cozy zip-up hoodie with SCLS logo, perfect for cooler weather.',
@@ -73,9 +73,9 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 160.0,
     category: 'apparel',
-    tags: ['apparel', 'new'],
+    tags: ['apparel'],
     available: true,
-    options: { S: 8, M: 4, L: 3, XL: 9 },
+    options: { S: 0, M: 0, L: 5, XL: 1 },
   },
   {
     id: 11,
@@ -101,7 +101,7 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 30.0,
     category: 'stationery',
-    tags: ['stationery', 'new'],
+    tags: ['stationery'],
     available: true,
   },
   {
@@ -125,7 +125,7 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 35.0,
     category: 'stationery',
-    tags: ['stationery', 'new'],
+    tags: ['stationery'],
     available: true,
   },
   {
@@ -163,7 +163,7 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 16.0,
     category: 'dailyUse',
-    tags: ['dailyUse', 'new'],
+    tags: ['dailyUse'],
     available: true,
   },
   {
@@ -175,7 +175,7 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 4.5,
     category: 'dailyUse',
-    tags: ['dailyUse', 'hot'],
+    tags: ['dailyUse'],
     available: true,
   },
 
@@ -189,7 +189,7 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 90.0,
     category: 'sports',
-    tags: ['sports', 'new'],
+    tags: ['sports'],
     available: false, // 目前售罄
   },
 
@@ -203,7 +203,7 @@ export const CATALOG: CatalogEntry[] = [
     },
     price: 4.8,
     category: 'gift',
-    tags: ['gift', 'new'],
+    tags: ['gift'],
     available: true,
   },
 ];
