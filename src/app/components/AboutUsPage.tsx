@@ -158,11 +158,13 @@ export default function AboutUsPage() {
 
   const heroBlocks = language === 'en' ? content.heroEn : content.heroCn;
   const thankYouBlocks = language === 'en' ? content.thankYouEn : content.thankYouCn;
+  const pageGutter = 'px-[clamp(1.25rem,8vw,10rem)]';
+  const contentCol = 'w-full max-w-[42rem] text-left';
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
-      <section className="bg-white px-8 py-16 sm:px-12 sm:py-20 md:px-16 md:py-24 lg:px-24">
-        <div className="mx-auto w-full max-w-3xl text-left">
+      <section className={`bg-white ${pageGutter} py-16 sm:py-20 md:py-24`}>
+        <div className={contentCol}>
           <span className="mb-8 block text-xs font-medium uppercase tracking-[0.22em] text-[#6B7280]">
             {t('About Us', '关于我们')}
           </span>
@@ -170,34 +172,36 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-3xl px-8 pb-16 sm:px-12 sm:pb-20 md:px-16 lg:px-0">
-        {content.sections.map((section, sectionIdx) => {
-          const paragraphs = language === 'en' ? section.paragraphsEn : section.paragraphsCn;
-          const title = language === 'en' ? section.titleEn : section.titleCn;
+      <div className={`${pageGutter} pb-16 sm:pb-20`}>
+        <div className={contentCol}>
+          {content.sections.map((section, sectionIdx) => {
+            const paragraphs = language === 'en' ? section.paragraphsEn : section.paragraphsCn;
+            const title = language === 'en' ? section.titleEn : section.titleCn;
 
-          return (
-            <section
-              key={section.id}
-              className={`w-full py-12 text-left sm:py-14 ${
-                sectionIdx > 0 ? 'border-t border-[#E5E7EB]' : ''
-              }`}
-            >
-              <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-[#6B7280]">
-                {String(sectionIdx + 1).padStart(2, '0')}
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111111] break-words leading-tight">
-                {title}
-              </h2>
-              <div className="mt-8 space-y-6">
-                {paragraphs.map((block, idx) => renderParagraph(block, idx, section.id))}
-              </div>
-            </section>
-          );
-        })}
+            return (
+              <section
+                key={section.id}
+                className={`w-full py-12 text-left sm:py-14 ${
+                  sectionIdx > 0 ? 'border-t border-[#E5E7EB]' : ''
+                }`}
+              >
+                <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-[#6B7280]">
+                  {String(sectionIdx + 1).padStart(2, '0')}
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111111] break-words leading-tight">
+                  {title}
+                </h2>
+                <div className="mt-8 space-y-6">
+                  {paragraphs.map((block, idx) => renderParagraph(block, idx, section.id))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
       </div>
 
-      <section className="bg-[#F8F9FA] px-8 py-16 sm:px-12 sm:py-20 md:px-16 lg:px-24">
-        <div className="mx-auto w-full max-w-3xl text-left">
+      <section className={`bg-[#F8F9FA] ${pageGutter} py-16 sm:py-20`}>
+        <div className={contentCol}>
           {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2' })}
         </div>
       </section>
