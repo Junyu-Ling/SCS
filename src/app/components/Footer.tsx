@@ -5,9 +5,9 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-white border-t border-[#E5E7EB] flex flex-col justify-center items-center py-12 sm:py-16 px-4 sm:px-6 md:px-8 lg:px-16 text-xs sm:text-sm">
-      <div className="space-y-6 text-center text-[#6B7280] max-w-2xl w-full">
-        <div className="text-[#111111] font-medium tracking-tight">2023-{currentYear} SCLS Campus Shop</div>
+    <footer className="w-full bg-black border-t border-[#174D3D] flex flex-col justify-center items-center py-12 sm:py-16 px-4 sm:px-6 md:px-8 lg:px-16 text-xs sm:text-sm">
+      <div className="space-y-6 text-center text-white/60 max-w-2xl w-full">
+        <div className="text-white font-medium">2023-{currentYear} SCLS Campus Shop</div>
 
         <div className="leading-[1.6]">
           {t(
@@ -16,7 +16,7 @@ export default function Footer() {
           )}
         </div>
 
-        <nav className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap text-[#111111]">
+        <nav className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap text-white">
           <a href="#/privacyPolicy" className="hover:opacity-60 transition-opacity">
             {t('Privacy Policy', '隐私政策')}
           </a>

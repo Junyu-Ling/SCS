@@ -85,17 +85,17 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="h-[10vh] min-h-[60px] max-h-[80px] w-full bg-white border-b border-[#E5E7EB] fixed top-0 z-40 flex items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8">
+    <nav className="h-[10vh] min-h-[60px] max-h-[80px] w-full bg-white border-b border-[#D6E2DC] fixed top-0 z-40 flex items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8">
       {/* Left Side - Logo and Title */}
       <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-1 min-w-0">
         <a href="#/" className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
-          <h1 className="text-base sm:text-xl md:text-2xl text-[#111111] font-semibold tracking-tight truncate">
+          <h1 className="text-base sm:text-xl md:text-2xl text-[#174D3D] font-semibold truncate">
             {language === 'en' ? 'SCLS Campus Shop' : '宋校文创商品店'}
           </h1>
         </a>
         
         {/* Subtitle - Hidden on mobile and tablet */}
-        <div className="hidden lg:flex flex-col justify-center text-[#6B7280] flex-shrink-0">
+        <div className="hidden lg:flex flex-col justify-center text-[#4A5E55] flex-shrink-0">
           {language === 'en' ? (
             <>
               <p className="text-xs leading-tight font-normal">Domestic Division High School</p>
@@ -113,7 +113,7 @@ export default function Navbar() {
       {/* Right Side - Search Box and Action Buttons */}
       <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         {/* Search Box - Hidden on mobile, shown on tablet and up */}
-        <div className="hidden md:flex items-center bg-[#F8F9FA] border border-[#E5E7EB] rounded-xl h-9 md:h-10 px-2 md:px-3 w-[180px] lg:w-[280px] xl:w-[320px] relative" ref={searchContainerRef}>
+        <div className="hidden md:flex items-center bg-[#F4F8F6] border border-[#D6E2DC] rounded-xl h-9 md:h-10 px-2 md:px-3 w-[180px] lg:w-[280px] xl:w-[320px] relative" ref={searchContainerRef}>
           <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mr-1 md:mr-2 flex-shrink-0" />
           <Input
             type="text"
@@ -135,7 +135,7 @@ export default function Navbar() {
             </button>
           )}
           {showSearchResults && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#E5E7EB] rounded-xl shadow-[0_8px_24px_rgba(17,17,17,0.06)] z-50 max-h-[400px] overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#D6E2DC] rounded-xl shadow-[0_8px_24px_rgba(17,17,17,0.06)] z-50 max-h-[400px] overflow-y-auto">
               {searchResults.map(product => (
                 <div
                   key={product.id}
@@ -170,7 +170,7 @@ export default function Navbar() {
             </div>
           )}
           {showSearchResults && searchValue.trim() && searchResults.length === 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#E5E7EB] rounded-xl shadow-[0_8px_24px_rgba(17,17,17,0.06)] z-50 px-4 py-6 text-center">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#D6E2DC] rounded-xl shadow-[0_8px_24px_rgba(17,17,17,0.06)] z-50 px-4 py-6 text-center">
               <Package className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
                 {language === 'en' ? 'No products found' : '未找到商品'}
@@ -184,10 +184,10 @@ export default function Navbar() {
           {isAdmin && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#F3F4F6] text-[#111111] rounded-xl">
+                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#E8F0EC] text-black rounded-xl">
                   <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                     <AvatarImage src={avatarUrl || undefined} />
-                    <AvatarFallback className="bg-[#111111] text-white text-xs">
+                    <AvatarFallback className="bg-[#174D3D] text-white text-xs">
                       {profile?.real_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -225,7 +225,7 @@ export default function Navbar() {
               variant="ghost"
               size="icon"
               onClick={() => setProfileDialogOpen(true)}
-              className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#F3F4F6] text-[#111111] rounded-xl"
+              className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#E8F0EC] text-black rounded-xl"
               title={t('Checkout details', '下单信息')}
             >
               <User className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -237,12 +237,12 @@ export default function Navbar() {
             variant="ghost"
             size="icon"
             onClick={handleCartClick}
-            className="relative h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#F3F4F6] text-[#111111] rounded-xl"
+            className="relative h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#E8F0EC] text-black rounded-xl"
             title={t('Cart', '购物车')}
           >
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
             {cartItems.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-[#111111] text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-medium">
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-[#174D3D] text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-medium">
                 {cartItems.length}
               </span>
             )}
@@ -254,7 +254,7 @@ export default function Navbar() {
             size="icon"
             onClick={toggleLanguage}
             title={t('Switch to Chinese', 'Switch to English')}
-            className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#F3F4F6] text-[#111111] rounded-xl"
+            className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#E8F0EC] text-black rounded-xl"
           >
             <Languages className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>

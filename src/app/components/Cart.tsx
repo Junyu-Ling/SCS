@@ -295,7 +295,7 @@ export default function Cart() {
       {!isCartOpen && cartItems.length > 0 && (
         <button
           onClick={() => setIsCartOpen(true)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 bg-[#111111] text-white p-3 rounded-l-xl hover:bg-black transition-colors z-30"
+          className="fixed right-0 top-1/2 -translate-y-1/2 bg-[#174D3D] text-white p-3 rounded-l-xl hover:bg-[#0F3A2E] transition-colors z-30"
         >
           <ChevronRight className="w-5 h-5" />
         </button>

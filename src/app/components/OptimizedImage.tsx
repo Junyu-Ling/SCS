@@ -86,7 +86,7 @@ export function OptimizedImage({
     return (
       <div
         className={cn(
-          'inline-block bg-[#F3F4F6] text-center align-middle',
+          'inline-block bg-[#E8F0EC] text-center align-middle',
           blurUp ? wrapperClassName : className
         )}
         style={blurUp ? { width: '100%', height: '100%' } : undefined}
@@ -128,7 +128,7 @@ export function OptimizedImage({
     <div className={cn('relative overflow-hidden', wrapperClassName)}>
       <div
         className={cn(
-          'absolute inset-0 z-0 bg-[#F3F4F6]',
+          'absolute inset-0 z-0 bg-[#E8F0EC]',
           'transition-opacity duration-700 ease-out',
           isLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
         )}

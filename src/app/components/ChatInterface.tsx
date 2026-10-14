@@ -149,7 +149,7 @@ export function ChatInterface({ customerId, customerName, isAdminView, className
   return (
     <div className={`flex flex-col h-[600px] border rounded-xl bg-white shadow-md overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="p-4 border-b border-[#E5E7EB] bg-white flex items-center justify-between shrink-0">
+      <div className="p-4 border-b border-[#D6E2DC] bg-white flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-full ${isAdminView ? 'bg-gray-200' : 'bg-primary/10'}`}>
             {isAdminView ? <User className="w-5 h-5 text-gray-600" /> : <UserCog className="w-5 h-5 text-primary" />}

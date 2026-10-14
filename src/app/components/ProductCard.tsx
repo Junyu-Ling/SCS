@@ -30,7 +30,7 @@ export const ProductCard = React.memo(({
   return (
     <div
       onClick={() => onClick(product.id)}
-      className="bg-white rounded-xl overflow-hidden cursor-pointer group border border-[#E5E7EB] transition-colors hover:border-[#D1D5DB]"
+      className="bg-white rounded-xl overflow-hidden cursor-pointer group border border-[#D6E2DC] transition-colors hover:border-[#BFD0C8]"
     >
       {/* Product Image */}
       <div className="relative aspect-square bg-white overflow-hidden">
@@ -50,7 +50,7 @@ export const ProductCard = React.memo(({
         {/* Sold Out Overlay */}
         {!isStocked && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-            <span className="bg-white text-[#111111] px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-lg">
+            <span className="bg-white text-black px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-lg">
               {t('Sold Out', '售罄')}
             </span>
           </div>
@@ -59,12 +59,12 @@ export const ProductCard = React.memo(({
         {/* Tags */}
         <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex flex-col gap-1">
           {product.tags && product.tags.includes('hot') && (
-            <span className="bg-[#111111] text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-lg tracking-wide">
+            <span className="bg-[#174D3D] text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-lg tracking-wide">
               {t('HOT', '热门')}
             </span>
           )}
           {product.tags && product.tags.includes('new') && (
-            <span className="bg-white text-[#111111] border border-[#E5E7EB] text-[10px] sm:text-xs px-2 py-0.5 rounded-lg tracking-wide">
+            <span className="bg-white text-black border border-[#D6E2DC] text-[10px] sm:text-xs px-2 py-0.5 rounded-lg tracking-wide">
               {t('NEW', '新品')}
             </span>
           )}
@@ -73,14 +73,14 @@ export const ProductCard = React.memo(({
 
       {/* Product Info */}
       <div className="p-3 sm:p-4">
-        <h3 className="text-sm sm:text-base mb-1 line-clamp-1 text-[#111111] font-medium tracking-tight">
+        <h3 className="text-sm sm:text-base mb-1 line-clamp-1 text-black font-medium">
           {language === 'en' ? product.name.en : product.name.cn}
         </h3>
-        <p className="text-[#6B7280] text-xs sm:text-sm mb-3 line-clamp-2 leading-[1.6]">
+        <p className="text-[#4A5E55] text-xs sm:text-sm mb-3 line-clamp-2 leading-[1.6]">
           {language === 'en' ? product.description.en : product.description.cn}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-[#111111] text-sm sm:text-base font-semibold tracking-tight">
+          <span className="text-black text-sm sm:text-base font-semibold">
             ¥{product.price.toFixed(2)}
           </span>
           {product.options && (

@@ -12,7 +12,7 @@ export default function HomePage() {
 
   return (
     <div className="relative w-full overflow-x-hidden bg-white">
-      <div className="relative min-h-[85vh] sm:min-h-[90vh] md:min-h-[100vh] w-full flex items-end justify-center overflow-hidden bg-[#F3F4F6]">
+      <div className="relative min-h-[85vh] sm:min-h-[90vh] md:min-h-[100vh] w-full flex items-end justify-center overflow-hidden bg-[#E8F0EC]">
         <OptimizedImage
           src={bgImage}
           alt="Campus Shop"
@@ -25,7 +25,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-black/40 z-10"></div>
 
         <div className="relative z-20 w-full max-w-4xl text-center text-white px-6 pb-24 sm:pb-28 md:pb-32">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 font-semibold tracking-tight leading-[1.1]">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 font-semibold leading-[1.1]">
             {t('SCLS Campus Shop', '欢 迎 光 临')}
           </h1>
           <p className="text-base sm:text-lg md:text-xl mb-10 sm:mb-12 opacity-80 font-normal leading-[1.6]">
@@ -34,7 +34,7 @@ export default function HomePage() {
           <Button
             onClick={handleShopNow}
             size="lg"
-            className="bg-white text-[#111111] hover:bg-[#F3F4F6] border-0 text-sm sm:text-base px-8 py-5 rounded-xl font-medium tracking-tight transition-colors duration-200"
+            className="bg-[#174D3D] text-white hover:bg-[#0F3A2E] border-0 text-sm sm:text-base px-8 py-5 rounded-xl font-medium transition-colors duration-200"
           >
             {t('Shop Now', '开始购物')}
           </Button>

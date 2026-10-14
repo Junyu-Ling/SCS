@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
   return (
     <div className="container max-w-md mx-auto py-8 px-4">
-      <Card className="shadow-none border border-[#E5E7EB] rounded-xl">
+      <Card className="shadow-none border border-[#D6E2DC] rounded-xl">
         <CardHeader>
           <CardTitle>{t('Checkout details', '下单信息')}</CardTitle>
           <CardDescription>

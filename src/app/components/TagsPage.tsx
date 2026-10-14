@@ -69,8 +69,8 @@ export default function TagsPage() {
       <div className="flex-1 flex items-start pt-[16vh] sm:pt-[18vh] md:pt-[20vh] overflow-hidden">
         <div className="w-full h-full flex flex-col lg:flex-row">
           <div className="w-full lg:w-2/5 flex items-start justify-center px-6 sm:px-8 lg:px-16 py-6 lg:py-8">
-            <div className="text-[#111111] max-w-md">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl mb-6 leading-[1.1] font-semibold tracking-tight">
+            <div className="text-black max-w-md">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl mb-6 leading-[1.1] font-semibold">
                 {language === 'en' ? (
                   <>
                     Unleash Your<br />
@@ -85,7 +85,7 @@ export default function TagsPage() {
                   </>
                 )}
               </h1>
-              <p className="text-base sm:text-lg text-[#6B7280] leading-[1.6]">
+              <p className="text-base sm:text-lg text-[#4A5E55] leading-[1.6]">
                 {t('Welcome to SCLS Student-Run Campus Shop', '欢迎来到宋校文创商品店')}
               </p>
             </div>
@@ -101,7 +101,7 @@ export default function TagsPage() {
                 <a
                   key={category.id}
                   href={category.href}
-                  className="group relative overflow-hidden rounded-xl flex-shrink-0 cursor-pointer border border-[#E5E7EB] w-[260px] h-[380px]"
+                  className="group relative overflow-hidden rounded-xl flex-shrink-0 cursor-pointer border border-[#D6E2DC] w-[260px] h-[380px]"
                 >
                   <OptimizedImage
                     src={category.image}
@@ -110,7 +110,7 @@ export default function TagsPage() {
                   />
                   <div className="absolute inset-x-0 bottom-0 h-24 bg-black/45"></div>
                   <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <h3 className="text-xl text-white font-medium tracking-tight">
+                    <h3 className="text-xl text-white font-medium">
                       {language === 'en' ? category.name.en : category.name.cn}
                     </h3>
                   </div>
@@ -127,7 +127,7 @@ export default function TagsPage() {
             <a
               key={category.id}
               href={category.href}
-              className="group relative overflow-hidden rounded-xl aspect-[3/4] cursor-pointer border border-[#E5E7EB] touch-manipulation"
+              className="group relative overflow-hidden rounded-xl aspect-[3/4] cursor-pointer border border-[#D6E2DC] touch-manipulation"
             >
               <OptimizedImage
                 src={category.image}
@@ -136,7 +136,7 @@ export default function TagsPage() {
               />
               <div className="absolute inset-x-0 bottom-0 h-16 bg-black/45"></div>
               <div className="absolute bottom-0 left-0 right-0 p-3">
-                <h3 className="text-sm sm:text-base text-white font-medium tracking-tight">
+                <h3 className="text-sm sm:text-base text-white font-medium">
                   {language === 'en' ? category.name.en : category.name.cn}
                 </h3>
               </div>
@@ -147,17 +147,17 @@ export default function TagsPage() {
 
       <div className="hidden lg:block absolute bottom-16 left-16 right-16 z-30">
         <div className="flex items-center gap-3">
-          <p className="text-[#6B7280] text-sm whitespace-nowrap">
+          <p className="text-[#4A5E55] text-sm whitespace-nowrap">
             {t('Scroll for more', '滚动查看更多')}
           </p>
-          <div className="flex-1 h-px bg-[#E5E7EB] overflow-hidden max-w-md">
+          <div className="flex-1 h-px bg-[#D6E2DC] overflow-hidden max-w-md">
             <div
-              className="h-full bg-[#111111] w-1/3 transition-transform duration-100 ease-out will-change-transform"
+              className="h-full bg-[#174D3D] w-1/3 transition-transform duration-100 ease-out will-change-transform"
               style={{ transform: `translateX(${scrollProgress * 200}%)` }}
             ></div>
           </div>
           <svg
-            className="w-4 h-4 text-[#111111] animate-bounce-horizontal"
+            className="w-4 h-4 text-black animate-bounce-horizontal"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

@@ -271,7 +271,7 @@ export default function AuthPage() {
   if (step === 'code') {
     return (
       <div className="flex items-center justify-center min-h-[60vh] px-4">
-        <Card className="w-full max-w-md shadow-none border border-[#E5E7EB] rounded-xl">
+        <Card className="w-full max-w-md shadow-none border border-[#D6E2DC] rounded-xl">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto bg-primary/10 p-4 rounded-full mb-4 w-fit">
               <Mail className="w-12 h-12 text-primary" />
@@ -338,7 +338,7 @@ export default function AuthPage() {
   if (step === 'profile') {
     return (
       <div className="flex items-center justify-center min-h-[60vh] px-4">
-        <Card className="w-full max-w-md shadow-none border border-[#E5E7EB] rounded-xl">
+        <Card className="w-full max-w-md shadow-none border border-[#D6E2DC] rounded-xl">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-bold text-primary">
               {t('Complete Your Profile', '完善你的资料')}
@@ -416,10 +416,10 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="auth-page min-h-[calc(100vh-10vh)] flex items-center justify-center px-4 py-8 bg-[#F8F9FA] font-sans antialiased">
-      <Card className="w-full max-w-[380px] border border-[#E5E7EB] bg-white shadow-none rounded-xl overflow-hidden">
+    <div className="auth-page min-h-[calc(100vh-10vh)] flex items-center justify-center px-4 py-8 bg-[#F4F8F6] font-sans antialiased">
+      <Card className="w-full max-w-[380px] border border-[#D6E2DC] bg-white shadow-none rounded-xl overflow-hidden">
         <CardHeader className="space-y-1 text-center pb-1 pt-7 px-6">
-          <CardTitle className="text-xl font-semibold tracking-tight text-primary">
+          <CardTitle className="text-xl font-semibold text-primary">
             SCLS Campus Shop
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">

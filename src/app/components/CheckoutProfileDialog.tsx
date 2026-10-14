@@ -72,7 +72,7 @@ export default function CheckoutProfileDialog({
         {isAdminEmail ? (
           <button
             type="button"
-            className="text-xs text-[#6B7280] hover:text-[#111111] transition-colors"
+            className="text-xs text-[#4A5E55] hover:text-[#174D3D] transition-colors"
             onClick={() => {
               onOpenChange(false);
               window.location.hash = '/login';

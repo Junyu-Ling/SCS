@@ -66,7 +66,7 @@ export default function VisitorStats() {
   }, []);
 
   const pill =
-    'pointer-events-none rounded-xl bg-white/90 text-[#6B7280] text-[11px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 border border-[#E5E7EB]';
+    'pointer-events-none rounded-xl bg-white/90 text-[#4A5E55] text-[11px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 border border-[#D6E2DC]';
 
   return (
     <>

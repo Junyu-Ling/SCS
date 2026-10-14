@@ -100,10 +100,10 @@ export default function ProductListPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
         {/* Page Title */}
         <div className="mb-8 sm:mb-10">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#111111] mb-2 font-semibold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl text-black mb-2 font-semibold">
             {language === 'en' ? getCategoryTitle(filterType).en : getCategoryTitle(filterType).cn}
           </h1>
-          <p className="text-sm text-[#6B7280]">
+          <p className="text-sm text-[#4A5E55]">
             {filteredProducts.length} {t('products', '件商品')}
           </p>
         </div>

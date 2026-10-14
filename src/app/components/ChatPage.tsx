@@ -40,9 +40,9 @@ export default function ChatPage() {
 
   return (
     <div className="flex justify-center items-center min-h-[50vh] px-4">
-      <Card className="w-full max-w-md text-center shadow-none border border-[#E5E7EB] rounded-xl">
+      <Card className="w-full max-w-md text-center shadow-none border border-[#D6E2DC] rounded-xl">
         <CardHeader>
-          <div className="mx-auto bg-[#F3F4F6] p-4 rounded-xl mb-2 w-fit">
+          <div className="mx-auto bg-[#E8F0EC] p-4 rounded-xl mb-2 w-fit">
             {ready ? <User className="w-10 h-10 text-primary" /> : <Mail className="w-10 h-10 text-primary" />}
           </div>
           <CardTitle>{t('Contact Us', '联系我们')}</CardTitle>

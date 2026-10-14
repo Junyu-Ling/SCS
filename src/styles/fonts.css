@@ -1,6 +1,8 @@
-/* Inter + system CJK stack for a clean editorial UI */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* SCLS Campus Shop Custom Font */
+/* Note: Custom font loading from external URLs is disabled in this environment */
+/* Using system fonts instead for compatibility */
 
-body, div, p, input, select, a, button, textarea, h1, h2, h3, h4, h5, h6 {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+/* Apply the font globally */
+body, div, p, input, select, a, button {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }

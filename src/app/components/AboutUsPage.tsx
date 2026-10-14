@@ -8,10 +8,10 @@ import {
 } from './AboutUsEditor';
 
 function adaptColor(color: string): string {
-  if (color.includes('#ff6b35') || color.includes('ff6b')) return 'text-[#111111]';
-  if (color.includes('text-white')) return 'text-[#111111]';
-  if (color.includes('text-gray')) return 'text-[#6B7280]';
-  if (color.includes('text-black')) return 'text-[#111111]';
+  if (color.includes('#ff6b35') || color.includes('ff6b')) return 'text-black';
+  if (color.includes('text-white')) return 'text-black';
+  if (color.includes('text-gray')) return 'text-[#4A5E55]';
+  if (color.includes('text-black')) return 'text-black';
   return color;
 }
 
@@ -35,7 +35,7 @@ function renderInlineBlocks(
     return (
       <Tag
         key={lineIdx}
-        className={`w-full text-left tracking-tight ${
+        className={`w-full text-left ${
           lineIdx > 0 ? 'mt-3 sm:mt-4' : ''
         }`}
       >
@@ -76,20 +76,20 @@ function renderMemberList(block: AboutUsTextBlock, idx: number) {
   }
 
   return (
-    <div key={idx} className="w-full text-left text-[#111111]">
-      <p className="mb-5 text-sm font-semibold tracking-wide uppercase text-[#6B7280]">{heading}</p>
+    <div key={idx} className="w-full text-left text-black">
+      <p className="mb-5 text-sm font-semibold tracking-wide uppercase text-[#4A5E55]">{heading}</p>
       <ul className="flex flex-wrap justify-start gap-2">
         {members.map((name) => (
           <li
             key={name}
-            className="rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] px-4 py-2 text-sm font-medium text-[#111111]"
+            className="rounded-xl border border-[#D6E2DC] bg-[#F4F8F6] px-4 py-2 text-sm font-medium text-black"
           >
             {name}
           </li>
         ))}
       </ul>
       {footnotes.map((note, noteIdx) => (
-        <p key={noteIdx} className="mt-4 text-xs font-normal text-[#6B7280] leading-[1.6]">
+        <p key={noteIdx} className="mt-4 text-xs font-normal text-[#4A5E55] leading-[1.6]">
           {note}
         </p>
       ))}
@@ -113,7 +113,7 @@ function renderParagraph(block: AboutUsTextBlock, idx: number, sectionId?: strin
       {lines.map((line, lineIdx) => {
         if (lineIdx === 0 && hasHeadingLine) {
           return (
-            <p key={lineIdx} className="mb-3 text-sm font-semibold tracking-wide uppercase text-[#6B7280]">
+            <p key={lineIdx} className="mb-3 text-sm font-semibold tracking-wide uppercase text-[#4A5E55]">
               {line}
             </p>
           );
@@ -121,7 +121,7 @@ function renderParagraph(block: AboutUsTextBlock, idx: number, sectionId?: strin
 
         if (line.trimStart().startsWith('*')) {
           return (
-            <p key={lineIdx} className="mt-3 text-xs font-normal text-[#6B7280]">
+            <p key={lineIdx} className="mt-3 text-xs font-normal text-[#4A5E55]">
               {line}
             </p>
           );
@@ -165,7 +165,7 @@ export default function AboutUsPage() {
     <div className="min-h-screen overflow-x-hidden bg-white">
       <section className={`bg-white ${pageGutter} py-16 sm:py-20 md:py-24`}>
         <div className={contentCol}>
-          <span className="mb-8 block text-xs font-medium uppercase tracking-[0.22em] text-[#6B7280]">
+          <span className="mb-8 block text-xs font-medium uppercase tracking-[0.22em] text-[#4A5E55]">
             {t('About Us', '关于我们')}
           </span>
           <div className="space-y-1">{renderInlineBlocks(heroBlocks)}</div>
@@ -182,13 +182,13 @@ export default function AboutUsPage() {
               <section
                 key={section.id}
                 className={`w-full py-12 text-left sm:py-14 ${
-                  sectionIdx > 0 ? 'border-t border-[#E5E7EB]' : ''
+                  sectionIdx > 0 ? 'border-t border-[#D6E2DC]' : ''
                 }`}
               >
-                <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-[#6B7280]">
+                <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-[#4A5E55]">
                   {String(sectionIdx + 1).padStart(2, '0')}
                 </span>
-                <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111111] break-words leading-tight">
+                <h2 className="text-3xl sm:text-4xl font-semibold text-black break-words leading-tight">
                   {title}
                 </h2>
                 <div className="mt-8 space-y-6">
@@ -200,7 +200,7 @@ export default function AboutUsPage() {
         </div>
       </div>
 
-      <section className={`bg-[#F8F9FA] ${pageGutter} py-16 sm:py-20`}>
+      <section className={`bg-[#F4F8F6] ${pageGutter} py-16 sm:py-20`}>
         <div className={contentCol}>
           {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2' })}
         </div>

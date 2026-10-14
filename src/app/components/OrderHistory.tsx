@@ -269,7 +269,7 @@ export default function OrderHistory() {
 
     return (
       <div className="container mx-auto py-8 px-4 max-w-2xl">
-        <Card className="shadow-none border border-[#E5E7EB] rounded-xl">
+        <Card className="shadow-none border border-[#D6E2DC] rounded-xl">
           <CardHeader>
             <CardTitle>{t('My Reservations', '我的预定')}</CardTitle>
             <CardDescription>
