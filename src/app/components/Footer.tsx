@@ -3,9 +3,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 const links = [
   { href: '#/privacyPolicy', en: 'Privacy Policy', cn: '隐私政策' },
   { href: '#/termsOfUse', en: 'Terms of Use', cn: '使用条款' },
-  { href: '#/aboutUs', en: 'About Us', cn: '关于我们' },
   { href: '#/updateHistory', en: 'Update History', cn: '更新记录' },
-  { href: '#/chat', en: 'Contact Us', cn: '联系我们' },
 ];
 
 export default function Footer() {
