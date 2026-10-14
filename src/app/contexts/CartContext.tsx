@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { projectId, publicAnonKey } from '../../../utils/supabase/info';
 import type { CheckoutProfile } from './CheckoutProfileContext';
+import { getCatalogPrice } from '../data/catalog';
 
 /**
  * 购物车商品类型定义
@@ -57,7 +58,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const savedCart = localStorage.getItem('cart_guest');
     if (savedCart) {
       try {
-        setCartItems(JSON.parse(savedCart));
+        // 旧版本存进 localStorage 的购物车可能带着过期单价：一律按代码里的价格表重新定价
+        const parsed = JSON.parse(savedCart) as CartItem[];
+        setCartItems(
+          parsed.map((item) => {
+            const catalogPrice = getCatalogPrice(item.commodityId);
+            return catalogPrice === undefined ? item : { ...item, price: catalogPrice };
+          }),
+        );
       } catch (error) {
         console.error('[CART] Error parsing saved cart:', error);
         setCartItems([]);

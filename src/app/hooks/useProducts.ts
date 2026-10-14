@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { projectId, publicAnonKey } from '../../../utils/supabase/info';
 import { getProductImages, isValidImageUrl } from '../data/product-images';
 import { products as localProducts } from '../data/products';
+import { CATALOG_BY_ID } from '../data/catalog';
 import { preloadProductThumbnails } from './useImagePreloader';
 
 /**
@@ -142,7 +143,6 @@ function enrichColorVariantsFromLocal(product: Product): Product {
   };
   if (local.colorImages) {
     next.images = local.images;
-    next.price = local.price;
     next.sizeGuide = local.sizeGuide ?? product.sizeGuide;
   }
   return next;
@@ -158,30 +158,11 @@ function mergeLocalOnlyProducts(apiProducts: Product[]): Product[] {
   return [...apiProducts, ...extras].sort((a, b) => a.id - b.id);
 }
 
-/** 只改已有商品的价格，不改名、不加新商品 */
+/** 价格只来自代码里的目录（data/catalog.ts），接口返回的任何价格都会被覆盖 */
 function applyCatalogOverrides(product: Product): Product {
-  const text = `${product.name?.en || ''} ${product.name?.cn || ''}`.toLowerCase();
-
-  if (/zip-up|拉链卫衣/.test(text)) {
-    return { ...product, price: 160 };
-  }
-  if (/crew neck|圆领卫衣/.test(text)) {
-    return { ...product, price: 140 };
-  }
-  if (/hooded sweatshirt|连帽卫衣/.test(text) && !/zip|拉链/.test(text)) {
-    return { ...product, price: 140 };
-  }
-  if (/b5 lined notebook|b5横线|pen set|笔套装/.test(text) || product.id === 4) {
-    return {
-      ...product,
-      name: { en: 'B5 Lined Notebook', cn: 'B5横线笔记本' },
-      price: 30,
-    };
-  }
-  if (/morandi/.test(text) || /loose-leaf notebook|loose leaf notebook|活页笔记本/.test(text)) {
-    return { ...product, price: 35 };
-  }
-  return product;
+  const entry = CATALOG_BY_ID[product.id];
+  if (!entry) return product;
+  return { ...product, price: entry.price };
 }
 
 /** 图片处理 + 服饰 Default 占位拆尺码 */
