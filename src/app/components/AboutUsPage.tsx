@@ -7,22 +7,19 @@ import {
   type AboutUsTextBlock,
 } from './AboutUsEditor';
 
-const ACCENT = '#ff6b35';
-
-function adaptColorForSurface(color: string, onDark: boolean): string {
-  if (!onDark) return color;
-  if (color.includes('text-black') || color.includes('text-gray')) return 'text-white/90';
+function adaptColor(color: string): string {
+  if (color.includes('#ff6b35') || color.includes('ff6b')) return 'text-[#111111]';
+  if (color.includes('text-white')) return 'text-[#111111]';
+  if (color.includes('text-gray')) return 'text-[#6B7280]';
+  if (color.includes('text-black')) return 'text-[#111111]';
   return color;
 }
 
-/**
- * 渲染内联文本块（Hero / Thank You）
- */
 function renderInlineBlocks(
   blocks: AboutUsTextBlock[],
-  options: { headingTag?: 'h1' | 'h2'; onDark?: boolean } = {},
+  options: { headingTag?: 'h1' | 'h2' } = {},
 ) {
-  const { headingTag = 'h1', onDark = false } = options;
+  const { headingTag = 'h1' } = options;
   const lines: AboutUsTextBlock[][] = [[]];
 
   for (const block of blocks) {
@@ -38,14 +35,14 @@ function renderInlineBlocks(
     return (
       <Tag
         key={lineIdx}
-        className={`mx-auto w-full max-w-2xl text-center leading-tight tracking-tight ${
+        className={`mx-auto w-full max-w-2xl text-center tracking-tight ${
           lineIdx > 0 ? 'mt-3 sm:mt-4' : ''
         }`}
       >
         {line.map((block, idx) => (
           <span
             key={idx}
-            className={`${block.fontSize} ${block.fontWeight} ${adaptColorForSurface(block.color, onDark)} break-words`}
+            className={`${block.fontSize} ${block.fontWeight} ${adaptColor(block.color)} break-words`}
           >
             {block.text}
           </span>
@@ -79,23 +76,20 @@ function renderMemberList(block: AboutUsTextBlock, idx: number) {
   }
 
   return (
-    <div
-      key={idx}
-      className={`${block.fontSize} ${block.fontWeight} ${block.color} mx-auto w-full max-w-xl text-center`}
-    >
-      <p className="mb-4 font-black tracking-wide text-inherit">{heading}</p>
-      <ul className="mx-auto flex max-w-lg flex-wrap justify-center gap-2.5 sm:gap-3">
+    <div key={idx} className="mx-auto w-full max-w-xl text-center text-[#111111]">
+      <p className="mb-5 text-sm font-semibold tracking-wide uppercase text-[#6B7280]">{heading}</p>
+      <ul className="mx-auto flex max-w-lg flex-wrap justify-center gap-2">
         {members.map((name) => (
           <li
             key={name}
-            className="rounded-full border border-primary/15 bg-primary/5 px-4 py-2 text-sm font-medium text-primary sm:text-base"
+            className="rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] px-4 py-2 text-sm font-medium text-[#111111]"
           >
             {name}
           </li>
         ))}
       </ul>
       {footnotes.map((note, noteIdx) => (
-        <p key={noteIdx} className="mt-4 text-xs font-normal text-gray-500 sm:text-sm">
+        <p key={noteIdx} className="mt-4 text-xs font-normal text-[#6B7280] leading-[1.6]">
           {note}
         </p>
       ))}
@@ -114,12 +108,12 @@ function renderParagraph(block: AboutUsTextBlock, idx: number, sectionId?: strin
   return (
     <div
       key={idx}
-      className={`${block.fontSize} ${block.fontWeight} ${block.color} mx-auto w-full max-w-xl text-center leading-relaxed break-words`}
+      className={`${block.fontSize} font-normal ${adaptColor(block.color)} mx-auto w-full max-w-xl text-center leading-[1.6] break-words`}
     >
       {lines.map((line, lineIdx) => {
         if (lineIdx === 0 && hasHeadingLine) {
           return (
-            <p key={lineIdx} className="mb-3 font-black tracking-wide text-inherit">
+            <p key={lineIdx} className="mb-3 text-sm font-semibold tracking-wide uppercase text-[#6B7280]">
               {line}
             </p>
           );
@@ -127,7 +121,7 @@ function renderParagraph(block: AboutUsTextBlock, idx: number, sectionId?: strin
 
         if (line.trimStart().startsWith('*')) {
           return (
-            <p key={lineIdx} className="mt-3 text-xs font-normal text-gray-500 sm:text-sm">
+            <p key={lineIdx} className="mt-3 text-xs font-normal text-[#6B7280]">
               {line}
             </p>
           );
@@ -166,63 +160,45 @@ export default function AboutUsPage() {
   const thankYouBlocks = language === 'en' ? content.thankYouEn : content.thankYouCn;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#f3f7f4]">
-      {/* Hero：纯色品牌背景，文案全居中 */}
-      <section className="flex flex-col items-center bg-primary px-4 py-16 text-white sm:px-6 sm:py-20 md:py-24">
+    <div className="min-h-screen overflow-x-hidden bg-white">
+      <section className="flex flex-col items-center bg-white px-6 py-20 sm:py-24 md:py-28">
         <div className="mx-auto w-full max-w-3xl text-center">
-          <span className="mb-6 inline-flex items-center rounded-full border border-white/25 bg-white/10 px-5 py-1.5 text-xs font-medium uppercase tracking-[0.25em] text-white/95 backdrop-blur-sm sm:mb-8 sm:text-sm">
+          <span className="mb-8 inline-block text-xs font-medium uppercase tracking-[0.22em] text-[#6B7280]">
             {t('About Us', '关于我们')}
           </span>
-
-          <div className="space-y-1">{renderInlineBlocks(heroBlocks, { onDark: true })}</div>
-
-          <span
-            className="mx-auto mt-8 block h-1 w-14 rounded-full sm:mt-10"
-            style={{ backgroundColor: ACCENT }}
-            aria-hidden
-          />
+          <div className="space-y-1">{renderInlineBlocks(heroBlocks)}</div>
         </div>
       </section>
 
-      {/* 正文：单列居中，卡片统一宽度 */}
-      <div className="flex w-full flex-col items-center space-y-8 px-4 py-12 sm:space-y-10 sm:px-6 sm:py-16 lg:px-8">
+      <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-6 pb-20 sm:pb-24">
         {content.sections.map((section, sectionIdx) => {
           const paragraphs = language === 'en' ? section.paragraphsEn : section.paragraphsCn;
           const title = language === 'en' ? section.titleEn : section.titleCn;
-          const isTeam = section.id === 'team';
 
           return (
             <section
               key={section.id}
-              className="w-full max-w-3xl rounded-3xl border border-white/80 bg-white px-6 py-10 text-center shadow-[0_20px_60px_-40px_rgba(23,77,61,0.55)] sm:px-10 sm:py-12"
+              className={`w-full py-14 text-center ${
+                sectionIdx > 0 ? 'border-t border-[#E5E7EB]' : ''
+              }`}
             >
-              <div className="mx-auto w-full max-w-2xl">
-                <span className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary/60">
-                  {String(sectionIdx + 1).padStart(2, '0')}
-                </span>
-                <h2
-                  className={`${section.titleSize} ${isTeam ? 'text-[#ff6b35]' : 'text-primary'} break-words leading-tight`}
-                >
-                  {title}
-                </h2>
-                <span
-                  className="mx-auto my-6 block h-1 w-12 rounded-full sm:my-7"
-                  style={{ backgroundColor: ACCENT }}
-                  aria-hidden
-                />
-                <div className="space-y-7 sm:space-y-8">
-                  {paragraphs.map((block, idx) => renderParagraph(block, idx, section.id))}
-                </div>
+              <span className="mb-4 block text-xs font-medium uppercase tracking-[0.2em] text-[#6B7280]">
+                {String(sectionIdx + 1).padStart(2, '0')}
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111111] break-words leading-tight">
+                {title}
+              </h2>
+              <div className="mt-10 space-y-8">
+                {paragraphs.map((block, idx) => renderParagraph(block, idx, section.id))}
               </div>
             </section>
           );
         })}
       </div>
 
-      {/* 结尾致谢 */}
-      <section className="flex flex-col items-center bg-[#102f27] px-4 py-16 text-white sm:px-6 sm:py-24">
+      <section className="flex flex-col items-center bg-[#F8F9FA] px-6 py-20 sm:py-24">
         <div className="mx-auto w-full max-w-3xl text-center">
-          {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2', onDark: true })}
+          {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2' })}
         </div>
       </section>
     </div>

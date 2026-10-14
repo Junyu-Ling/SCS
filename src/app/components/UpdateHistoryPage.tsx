@@ -59,10 +59,10 @@ export default function UpdateHistoryPage() {
             <p className="text-xs sm:text-sm text-gray-400 mb-2 break-words">
               {update.date}
             </p>
-            <h2 className="text-xl sm:text-2xl font-normal mb-2 sm:mb-3 text-white break-words">
+            <h2 className="text-xl sm:text-2xl font-normal mb-2 sm:mb-3 text-[#111111] break-words">
               {update.title}
             </h2>
-            <p className="text-sm sm:text-base text-gray-300 leading-relaxed break-words">
+            <p className="text-sm sm:text-base text-[#6B7280] leading-relaxed break-words">
               {update.description}
             </p>
           </article>

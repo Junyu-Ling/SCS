@@ -192,7 +192,7 @@ export default function Cart() {
               <Button
                 onClick={handleSubmit}
                 disabled={selectedIds.size === 0}
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed h-12 text-base font-medium transition-all duration-200 hover:shadow-lg"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed h-12 text-base font-medium transition-colors duration-200 rounded-xl"
               >
                 {t('Reserve', '提交预定')} ({selectedIds.size})
                 <ChevronRight className="w-5 h-5 ml-1" />
@@ -229,7 +229,7 @@ export default function Cart() {
       {!isCartOpen && cartItems.length > 0 && (
         <button
           onClick={() => setIsCartOpen(true)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-3 rounded-l-lg shadow-lg hover:bg-primary/90 transition-colors z-30"
+          className="fixed right-0 top-1/2 -translate-y-1/2 bg-[#111111] text-white p-3 rounded-l-xl hover:bg-black transition-colors z-30"
         >
           <ChevronRight className="w-5 h-5" />
         </button>

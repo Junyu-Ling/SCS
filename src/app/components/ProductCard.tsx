@@ -30,7 +30,7 @@ export const ProductCard = React.memo(({
   return (
     <div
       onClick={() => onClick(product.id)}
-      className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer group border border-border"
+      className="bg-white rounded-xl overflow-hidden cursor-pointer group border border-[#E5E7EB] transition-colors hover:border-[#D1D5DB]"
     >
       {/* Product Image */}
       <div className="relative aspect-square bg-white overflow-hidden">
@@ -39,7 +39,7 @@ export const ProductCard = React.memo(({
             src={primaryImage}
             fallbackSrc={fallbackImage && fallbackImage !== primaryImage ? fallbackImage : undefined}
             alt={language === 'en' ? product.name.en : product.name.cn}
-            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain p-4 group-hover:scale-[1.03] transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -50,7 +50,7 @@ export const ProductCard = React.memo(({
         {/* Sold Out Overlay */}
         {!isStocked && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-            <span className="bg-white/90 text-black px-3 py-1 text-sm font-bold uppercase rounded shadow-sm">
+            <span className="bg-white text-[#111111] px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-lg">
               {t('Sold Out', '售罄')}
             </span>
           </div>
@@ -59,12 +59,12 @@ export const ProductCard = React.memo(({
         {/* Tags */}
         <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex flex-col gap-1">
           {product.tags && product.tags.includes('hot') && (
-            <span className="bg-red-500 text-white text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
+            <span className="bg-[#111111] text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-lg tracking-wide">
               {t('HOT', '热门')}
             </span>
           )}
           {product.tags && product.tags.includes('new') && (
-            <span className="bg-green-600 text-white text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
+            <span className="bg-white text-[#111111] border border-[#E5E7EB] text-[10px] sm:text-xs px-2 py-0.5 rounded-lg tracking-wide">
               {t('NEW', '新品')}
             </span>
           )}
@@ -72,15 +72,15 @@ export const ProductCard = React.memo(({
       </div>
 
       {/* Product Info */}
-      <div className="p-2.5 sm:p-3 md:p-4">
-        <h3 className="text-sm sm:text-base md:text-lg mb-1 sm:mb-2 line-clamp-1 text-card-foreground">
+      <div className="p-3 sm:p-4">
+        <h3 className="text-sm sm:text-base mb-1 line-clamp-1 text-[#111111] font-medium tracking-tight">
           {language === 'en' ? product.name.en : product.name.cn}
         </h3>
-        <p className="text-muted-foreground text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">
+        <p className="text-[#6B7280] text-xs sm:text-sm mb-3 line-clamp-2 leading-[1.6]">
           {language === 'en' ? product.description.en : product.description.cn}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-primary text-base sm:text-lg md:text-xl">
+          <span className="text-[#111111] text-sm sm:text-base font-semibold tracking-tight">
             ¥{product.price.toFixed(2)}
           </span>
           {product.options && (

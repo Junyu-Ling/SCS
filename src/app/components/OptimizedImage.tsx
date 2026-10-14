@@ -86,7 +86,7 @@ export function OptimizedImage({
     return (
       <div
         className={cn(
-          'inline-block bg-gradient-to-br from-primary/20 to-secondary/20 text-center align-middle',
+          'inline-block bg-[#F3F4F6] text-center align-middle',
           blurUp ? wrapperClassName : className
         )}
         style={blurUp ? { width: '100%', height: '100%' } : undefined}
@@ -126,22 +126,14 @@ export function OptimizedImage({
 
   return (
     <div className={cn('relative overflow-hidden', wrapperClassName)}>
-      {/* 品牌色渐变占位，避免灰屏 */}
       <div
         className={cn(
-          'absolute inset-0 z-0 bg-gradient-to-br from-primary/35 via-[#2a6b55]/25 to-secondary/35',
+          'absolute inset-0 z-0 bg-[#F3F4F6]',
           'transition-opacity duration-700 ease-out',
           isLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
         )}
         aria-hidden
       />
-      {/* 轻微 shimmer */}
-      {!isLoaded && (
-        <div
-          className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"
-          aria-hidden
-        />
-      )}
       <div className="relative z-[1] w-full h-full">{imgEl}</div>
     </div>
   );
