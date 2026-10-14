@@ -267,7 +267,14 @@ const SECTION_THEMES: {
 ];
 
 /** 旧版 How to Buy 仍提到「注册账号」，网站已改为免登录下单，遇到旧数据时换成最新默认文案 */
-function migrateLegacyContent(content: AboutUsContent): AboutUsContent {
+// 已保存的旧内容里把 "XiaYa Club" 纠正为 "XiaoYa Club"
+function fixClubName(content: AboutUsContent): AboutUsContent {
+  const json = JSON.stringify(content);
+  return json.includes('XiaYa') ? (JSON.parse(json.replace(/XiaYa/g, 'XiaoYa')) as AboutUsContent) : content;
+}
+
+function migrateLegacyContent(rawContent: AboutUsContent): AboutUsContent {
+  const content = fixClubName(rawContent);
   const fresh = DEFAULT_ABOUT_US_CONTENT.sections.find((s) => s.id === 'how-to-buy');
   if (!fresh) return content;
   const isLegacy = (text: string) => /account registration|注册账号/i.test(text);

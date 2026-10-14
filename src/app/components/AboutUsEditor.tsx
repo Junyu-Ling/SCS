@@ -186,7 +186,7 @@ export const DEFAULT_ABOUT_US_CONTENT: AboutUsContent = {
       titleColor: 'text-[#ff6b35]',
       titleSize: 'text-4xl',
       paragraphsEn: [
-        { text: 'SCS is part of ArteZone XiaYa Club under the Domestic Division High School Student Council Clubs Department.', fontSize: 'text-lg', fontWeight: 'font-black', color: 'text-black' },
+        { text: 'SCS is part of ArteZone XiaoYa Club under the Domestic Division High School Student Council Clubs Department.', fontSize: 'text-lg', fontWeight: 'font-black', color: 'text-black' },
         { text: 'Current Members:\nAilin Han\nAn Hu\nJunyu Ling\nRuomeng Li\n*Names are listed in alphabetical order by first name and have no other significance.', fontSize: 'text-lg', fontWeight: 'font-normal', color: 'text-gray-800' },
         { text: 'Honored Members:\nFangting Lin\nJiajia Lyu\nKaikun Chen\nLiting Yu\nQixin Zhu\nWeide Dai\nXinyi Wang\nZitong Huang\n*Names are listed in alphabetical order by first name and have no other significance.', fontSize: 'text-lg', fontWeight: 'font-normal', color: 'text-gray-800' },
         { text: '🤝 Please note that all operations and decisions are student-led, with full supervision by high school teachers from the Domestic Division.', fontSize: 'text-lg', fontWeight: 'font-black', color: 'text-[#ff6b35]' },
