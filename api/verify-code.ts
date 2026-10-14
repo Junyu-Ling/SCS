@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { command } from './_lib/redis';
-import { EMAIL_RE, normalizeEmail, readBody } from './_lib/http';
+import { EMAIL_RE, SCHOOL_EMAIL_RE, normalizeEmail, readBody } from './_lib/http';
 
 // POST { email, code } -> 校验验证码，每个验证码最多尝试 5 次，成功后立即作废
 
@@ -24,7 +24,7 @@ export default async function handler(req: any, res: any) {
   const email = normalizeEmail(body?.email);
   const code = typeof body?.code === 'string' ? body.code.trim() : '';
 
-  if (!EMAIL_RE.test(email) || !/^\d{6}$/.test(code)) {
+  if (!EMAIL_RE.test(email) || !SCHOOL_EMAIL_RE.test(email) || !/^\d{6}$/.test(code)) {
     res.status(400).json({ error: 'Invalid email or code / 邮箱或验证码格式不正确' });
     return;
   }

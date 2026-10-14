@@ -38,6 +38,9 @@ interface CheckoutProfileContextType {
 
 const CheckoutProfileContext = createContext<CheckoutProfileContextType | undefined>(undefined);
 
+// 只允许学校邮箱：@scls-sh.org（老师）或 @stu.scls-sh.org（学生）
+export const SCHOOL_EMAIL_RE = /^[^\s@]+@(stu\.)?scls-sh\.org$/;
+
 function readStoredProfile(): CheckoutProfile {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -45,7 +48,10 @@ function readStoredProfile(): CheckoutProfile {
     const parsed = JSON.parse(raw) as Partial<CheckoutProfile>;
     return {
       email: typeof parsed.email === 'string' ? parsed.email : '',
-      emailVerified: parsed.emailVerified === true && typeof parsed.email === 'string' && parsed.email !== '',
+      emailVerified:
+        parsed.emailVerified === true &&
+        typeof parsed.email === 'string' &&
+        SCHOOL_EMAIL_RE.test(parsed.email.trim().toLowerCase()),
       realName: typeof parsed.realName === 'string' ? parsed.realName : '',
       className: typeof parsed.className === 'string' ? parsed.className : '',
       note: typeof parsed.note === 'string' ? parsed.note : '',
@@ -59,7 +65,7 @@ export function isCheckoutProfileComplete(profile: CheckoutProfile): boolean {
   const email = profile.email.trim().toLowerCase();
   const name = profile.realName.trim();
   const className = profile.className.trim();
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const emailOk = SCHOOL_EMAIL_RE.test(email);
   return emailOk && profile.emailVerified && name.length > 0 && className.length > 0;
 }
 

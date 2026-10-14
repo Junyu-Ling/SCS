@@ -16,6 +16,9 @@ export function normalizeEmail(value: unknown): string {
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// 只允许学校邮箱：@scls-sh.org（老师）或 @stu.scls-sh.org（学生）
+export const SCHOOL_EMAIL_RE = /^[^\s@]+@(stu\.)?scls-sh\.org$/;
+
 export function clientIp(req: any): string {
   const forwarded = req.headers?.['x-forwarded-for'];
   const first = Array.isArray(forwarded) ? forwarded[0] : String(forwarded ?? '').split(',')[0];

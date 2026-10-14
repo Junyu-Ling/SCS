@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { command } from './_lib/redis';
 import { mailConfigured, sendMail } from './_lib/mail';
-import { EMAIL_RE, clientIp, normalizeEmail, readBody } from './_lib/http';
+import { EMAIL_RE, SCHOOL_EMAIL_RE, clientIp, normalizeEmail, readBody } from './_lib/http';
 
 // POST { email } -> 给该邮箱发 6 位验证码（10 分钟有效，同一邮箱 60 秒内只能发一次，同一 IP 每小时最多 20 次）
 
@@ -20,6 +20,10 @@ export default async function handler(req: any, res: any) {
   const email = normalizeEmail(readBody(req)?.email);
   if (!EMAIL_RE.test(email) || email.length > 200) {
     res.status(400).json({ error: 'Please enter a valid email / 请输入有效邮箱' });
+    return;
+  }
+  if (!SCHOOL_EMAIL_RE.test(email)) {
+    res.status(400).json({ error: 'Only @scls-sh.org or @stu.scls-sh.org emails are allowed / 仅支持 @scls-sh.org 或 @stu.scls-sh.org 邮箱' });
     return;
   }
 

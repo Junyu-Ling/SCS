@@ -3,6 +3,7 @@ import { BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   CHECKOUT_CLASSES,
+  SCHOOL_EMAIL_RE,
   useCheckoutProfile,
   type CheckoutProfile,
 } from '../contexts/CheckoutProfileContext';
@@ -25,7 +26,6 @@ type CheckoutProfileFormProps = {
   showNote?: boolean;
 };
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_SECONDS = 60;
 
 async function postJson(path: string, body: unknown) {
@@ -66,7 +66,8 @@ export default function CheckoutProfileForm({
     return () => window.clearTimeout(timer);
   }, [cooldown]);
 
-  const emailLooksValid = EMAIL_RE.test(emailValue.trim());
+  const emailIsSchool = SCHOOL_EMAIL_RE.test(emailValue.trim().toLowerCase());
+  const emailLooksValid = emailIsSchool;
 
   const handleEmailChange = (next: string) => {
     update({ email: next, emailVerified: false });
@@ -118,19 +119,10 @@ export default function CheckoutProfileForm({
   return (
     <div className="flex flex-col gap-4 text-left">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="checkout-name">{t('Real name', '真实姓名')}</Label>
-        <Input
-          id="checkout-name"
-          value={value.realName}
-          onChange={(e) => update({ realName: e.target.value })}
-          placeholder={t('Your name', '请输入真实姓名')}
-          className="h-10 rounded-xl"
-        />
-      </div>
-
-      <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-2">
-          <Label htmlFor="checkout-email">{t('Email', '邮箱')}</Label>
+          <Label htmlFor="checkout-email">
+            {t('Step 1 · School email', '第 1 步 · 学校邮箱')}
+          </Label>
           {locked ? (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-[#174D3D]">
               <BadgeCheck className="h-3.5 w-3.5" />
@@ -146,7 +138,7 @@ export default function CheckoutProfileForm({
             value={emailValue}
             disabled={locked}
             onChange={(e) => handleEmailChange(e.target.value)}
-            placeholder="name@example.com"
+            placeholder="name@stu.scls-sh.org"
             className="h-10 min-w-0 flex-1 rounded-xl disabled:bg-[#EEF4F1] disabled:text-[#174D3D] disabled:opacity-100"
           />
           {!locked ? (
@@ -176,11 +168,19 @@ export default function CheckoutProfileForm({
         ) : (
           <p className="text-xs leading-[1.6] text-[#4A5E55]">
             {t(
-              'Verify your email with a code. Once verified it is bound and cannot be changed.',
-              '需要通过验证码验证邮箱，验证后将被绑定，之后不能再修改。'
+              'Use your @stu.scls-sh.org or @scls-sh.org email. Verify it first, then fill in the rest. Once verified it is bound and cannot be changed.',
+              '请使用 @stu.scls-sh.org 或 @scls-sh.org 邮箱。先验证邮箱，再填写其他信息；验证后将被绑定，不能再修改。'
             )}
           </p>
         )}
+        {!locked && emailValue.trim() !== '' && !emailIsSchool ? (
+          <p className="text-xs leading-[1.6] text-red-600">
+            {t(
+              'Only @scls-sh.org or @stu.scls-sh.org emails are supported.',
+              '仅支持 @scls-sh.org 或 @stu.scls-sh.org 结尾的邮箱。'
+            )}
+          </p>
+        ) : null}
 
         {!locked && codeSent ? (
           <div className="flex items-center gap-2 pt-1">
@@ -206,9 +206,29 @@ export default function CheckoutProfileForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <Label htmlFor="checkout-name">
+          {t('Step 2 · Real name', '第 2 步 · 真实姓名')}
+        </Label>
+        <Input
+          id="checkout-name"
+          value={value.realName}
+          disabled={!locked}
+          onChange={(e) => update({ realName: e.target.value })}
+          placeholder={
+            locked ? t('Your name', '请输入真实姓名') : t('Verify your email first', '请先验证邮箱')
+          }
+          className="h-10 rounded-xl disabled:cursor-not-allowed disabled:bg-[#F3F5F4]"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="checkout-class">{t('Class', '班级')}</Label>
-        <Select value={value.className || undefined} onValueChange={(className) => update({ className })}>
-          <SelectTrigger id="checkout-class" className="h-10 rounded-xl">
+        <Select
+          value={value.className || undefined}
+          disabled={!locked}
+          onValueChange={(className) => update({ className })}
+        >
+          <SelectTrigger id="checkout-class" className="h-10 rounded-xl disabled:cursor-not-allowed disabled:bg-[#F3F5F4]">
             <SelectValue placeholder={t('Select class', '请选择班级')} />
           </SelectTrigger>
           <SelectContent>
@@ -229,6 +249,7 @@ export default function CheckoutProfileForm({
           <Textarea
             id="checkout-note"
             value={value.note}
+            disabled={!locked}
             onChange={(e) => update({ note: e.target.value })}
             placeholder={t('Anything we should know', '有需要说明的可以写在这里')}
             className="min-h-[88px] rounded-xl"
