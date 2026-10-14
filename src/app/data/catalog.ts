@@ -21,6 +21,8 @@ export interface CatalogEntry {
   available: boolean;
   /** 选项（尺码 / 颜色）及初始库存。没有选项的商品不写 */
   options?: Record<string, number>;
+  /** options 的含义：尺码或颜色（订单邮件里分别显示在 Size / Color 列） */
+  optionKind?: 'size' | 'color';
 }
 
 export const CATALOG: CatalogEntry[] = [
@@ -37,6 +39,7 @@ export const CATALOG: CatalogEntry[] = [
     tags: ['apparel', 'new'],
     available: true,
     options: { Blue: 20, 'Dark Green': 20, Khaki: 20, Teal: 20 },
+    optionKind: 'color',
   },
   {
     id: 1,
@@ -50,6 +53,7 @@ export const CATALOG: CatalogEntry[] = [
     tags: ['apparel', 'hot'],
     available: true,
     options: { S: 20, M: 25, L: 20, XL: 15 },
+    optionKind: 'size',
   },
   {
     id: 15,
@@ -63,6 +67,7 @@ export const CATALOG: CatalogEntry[] = [
     tags: ['apparel', 'hot'],
     available: true,
     options: { S: 0, M: 0, L: 0, XL: 0 },
+    optionKind: 'size',
   },
   {
     id: 2,
@@ -76,6 +81,7 @@ export const CATALOG: CatalogEntry[] = [
     tags: ['apparel'],
     available: true,
     options: { S: 0, M: 0, L: 5, XL: 1 },
+    optionKind: 'size',
   },
   {
     id: 11,
@@ -89,6 +95,7 @@ export const CATALOG: CatalogEntry[] = [
     tags: ['apparel'],
     available: true,
     options: { S: 0, M: 10, L: 6, XL: 13 },
+    optionKind: 'size',
   },
 
   // ---------- Stationery ----------

@@ -37,6 +37,8 @@ function localApiRoutes() {
             req.body = {}
           }
 
+          req.query = Object.fromEntries(url.searchParams)
+
           res.status = (code: number) => {
             res.statusCode = code
             return res
