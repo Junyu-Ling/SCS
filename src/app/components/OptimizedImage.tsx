@@ -12,6 +12,8 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   blurUp?: boolean;
   /** blurUp 模式下外层容器 class */
   wrapperClassName?: string;
+  /** blurUp 模式下的低清缩略图（内联 data URI），加载前以模糊图呈现，而不是纯色底 */
+  placeholderSrc?: string;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -30,6 +32,7 @@ export function OptimizedImage({
   fallbackSrc,
   blurUp = false,
   wrapperClassName = '',
+  placeholderSrc,
   onLoad,
   onError,
   ...rest
@@ -109,7 +112,7 @@ export function OptimizedImage({
           'transition-[opacity,filter,transform] duration-700 ease-out will-change-[opacity,filter,transform]',
           isLoaded
             ? 'opacity-100 blur-0 scale-100'
-            : 'opacity-0 blur-2xl scale-[1.03]',
+            : 'opacity-0 blur-sm scale-[1.03]',
         ]
       )}
       onLoad={handleLoad}
@@ -128,12 +131,22 @@ export function OptimizedImage({
     <div className={cn('relative overflow-hidden', wrapperClassName)}>
       <div
         className={cn(
-          'absolute inset-0 z-0 bg-[#E8F0EC]',
+          'absolute inset-0 z-0 overflow-hidden',
+          !placeholderSrc && 'bg-[#E8F0EC]',
           'transition-opacity duration-700 ease-out',
           isLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
         )}
         aria-hidden
-      />
+      >
+        {placeholderSrc ? (
+          <img
+            src={placeholderSrc}
+            alt=""
+            className="w-full h-full object-cover blur-2xl scale-125"
+            decoding="sync"
+          />
+        ) : null}
+      </div>
       <div className="relative z-[1] w-full h-full">{imgEl}</div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from './ui/button';
 import { OptimizedImage } from './OptimizedImage';
+import { HERO_BLUR_PLACEHOLDER } from './heroBlur';
 import bgImage from 'figma:asset/61b600464c10ad2f4fcf9d9d77c1d869e872c127.png';
 
 export default function HomePage() {
@@ -12,12 +13,13 @@ export default function HomePage() {
 
   return (
     <div className="relative w-full overflow-x-hidden bg-white">
-      <div className="relative min-h-[85vh] sm:min-h-[90vh] md:min-h-[100vh] w-full flex items-center justify-center overflow-hidden bg-[#E8F0EC] pt-[10vh]">
+      <div className="relative min-h-[85vh] sm:min-h-[90vh] md:min-h-[100vh] w-full flex items-center justify-center overflow-hidden pt-[10vh]">
         <OptimizedImage
           src={bgImage}
           alt="Campus Shop"
           priority={true}
           blurUp
+          placeholderSrc={HERO_BLUR_PLACEHOLDER}
           wrapperClassName="absolute inset-0 w-full h-full"
           className="w-full h-full object-cover"
         />
