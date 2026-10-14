@@ -12,7 +12,7 @@ export default function HomePage() {
 
   return (
     <div className="relative w-full overflow-x-hidden bg-white">
-      <div className="relative min-h-[85vh] sm:min-h-[90vh] md:min-h-[100vh] w-full flex items-end justify-center overflow-hidden bg-[#E8F0EC]">
+      <div className="relative min-h-[85vh] sm:min-h-[90vh] md:min-h-[100vh] w-full flex items-center justify-center overflow-hidden bg-[#E8F0EC] pt-[10vh]">
         <OptimizedImage
           src={bgImage}
           alt="Campus Shop"
@@ -24,8 +24,8 @@ export default function HomePage() {
 
         <div className="absolute inset-0 bg-black/40 z-10"></div>
 
-        <div className="relative z-20 w-full max-w-4xl text-center text-white px-6 pb-24 sm:pb-28 md:pb-32">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 font-semibold leading-[1.1]">
+        <div className="relative z-20 w-full max-w-4xl text-center text-white px-6 py-12 flex flex-col items-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-5 font-semibold leading-[1.1]">
             {t('SCLS Campus Shop', '欢 迎 光 临')}
           </h1>
           <p className="text-base sm:text-lg md:text-xl mb-10 sm:mb-12 opacity-80 font-normal leading-[1.6]">
