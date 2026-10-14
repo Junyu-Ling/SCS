@@ -17,7 +17,7 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
       retryCount: retryCount
     });
 
-    if (retryCount === 0 && src.includes('supabase.co/storage')) {
+    if (retryCount === 0 && !src.startsWith('data:')) {
       setRetryCount(1);
       img.src = src.includes('?') ? `${src}&t=${Date.now()}` : `${src}?t=${Date.now()}`;
       return;

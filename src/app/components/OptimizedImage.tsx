@@ -66,7 +66,7 @@ export function OptimizedImage({
   const handleError = () => {
     setIsLoaded(false);
 
-    if (retryCount === 0 && currentSrc.includes('supabase.co/storage')) {
+    if (retryCount === 0 && !currentSrc.startsWith('data:')) {
       setRetryCount(1);
       const busted = currentSrc.includes('?')
         ? `${currentSrc}&t=${Date.now()}`
