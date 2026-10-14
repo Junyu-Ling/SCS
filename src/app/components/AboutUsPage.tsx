@@ -35,7 +35,7 @@ function renderInlineBlocks(
     return (
       <Tag
         key={lineIdx}
-        className={`mx-auto w-full max-w-2xl text-center tracking-tight ${
+        className={`w-full text-left tracking-tight ${
           lineIdx > 0 ? 'mt-3 sm:mt-4' : ''
         }`}
       >
@@ -76,9 +76,9 @@ function renderMemberList(block: AboutUsTextBlock, idx: number) {
   }
 
   return (
-    <div key={idx} className="mx-auto w-full max-w-xl text-center text-[#111111]">
+    <div key={idx} className="w-full text-left text-[#111111]">
       <p className="mb-5 text-sm font-semibold tracking-wide uppercase text-[#6B7280]">{heading}</p>
-      <ul className="mx-auto flex max-w-lg flex-wrap justify-center gap-2">
+      <ul className="flex flex-wrap justify-start gap-2">
         {members.map((name) => (
           <li
             key={name}
@@ -108,7 +108,7 @@ function renderParagraph(block: AboutUsTextBlock, idx: number, sectionId?: strin
   return (
     <div
       key={idx}
-      className={`${block.fontSize} font-normal ${adaptColor(block.color)} mx-auto w-full max-w-xl text-center leading-[1.6] break-words`}
+      className={`${block.fontSize} font-normal ${adaptColor(block.color)} w-full text-left leading-[1.6] break-words`}
     >
       {lines.map((line, lineIdx) => {
         if (lineIdx === 0 && hasHeadingLine) {
@@ -161,16 +161,16 @@ export default function AboutUsPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
-      <section className="flex flex-col items-center bg-white px-6 py-20 sm:py-24 md:py-28">
-        <div className="mx-auto w-full max-w-3xl text-center">
-          <span className="mb-8 inline-block text-xs font-medium uppercase tracking-[0.22em] text-[#6B7280]">
+      <section className="bg-white px-8 py-16 sm:px-12 sm:py-20 md:px-16 md:py-24 lg:px-24">
+        <div className="mx-auto w-full max-w-3xl text-left">
+          <span className="mb-8 block text-xs font-medium uppercase tracking-[0.22em] text-[#6B7280]">
             {t('About Us', '关于我们')}
           </span>
           <div className="space-y-1">{renderInlineBlocks(heroBlocks)}</div>
         </div>
       </section>
 
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-6 pb-20 sm:pb-24">
+      <div className="mx-auto w-full max-w-3xl px-8 pb-16 sm:px-12 sm:pb-20 md:px-16 lg:px-0">
         {content.sections.map((section, sectionIdx) => {
           const paragraphs = language === 'en' ? section.paragraphsEn : section.paragraphsCn;
           const title = language === 'en' ? section.titleEn : section.titleCn;
@@ -178,17 +178,17 @@ export default function AboutUsPage() {
           return (
             <section
               key={section.id}
-              className={`w-full py-14 text-center ${
+              className={`w-full py-12 text-left sm:py-14 ${
                 sectionIdx > 0 ? 'border-t border-[#E5E7EB]' : ''
               }`}
             >
-              <span className="mb-4 block text-xs font-medium uppercase tracking-[0.2em] text-[#6B7280]">
+              <span className="mb-3 block text-xs font-medium uppercase tracking-[0.2em] text-[#6B7280]">
                 {String(sectionIdx + 1).padStart(2, '0')}
               </span>
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111111] break-words leading-tight">
                 {title}
               </h2>
-              <div className="mt-10 space-y-8">
+              <div className="mt-8 space-y-6">
                 {paragraphs.map((block, idx) => renderParagraph(block, idx, section.id))}
               </div>
             </section>
@@ -196,8 +196,8 @@ export default function AboutUsPage() {
         })}
       </div>
 
-      <section className="flex flex-col items-center bg-[#F8F9FA] px-6 py-20 sm:py-24">
-        <div className="mx-auto w-full max-w-3xl text-center">
+      <section className="bg-[#F8F9FA] px-8 py-16 sm:px-12 sm:py-20 md:px-16 lg:px-24">
+        <div className="mx-auto w-full max-w-3xl text-left">
           {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2' })}
         </div>
       </section>
