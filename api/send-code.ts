@@ -1,6 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { command } from './_lib/redis';
 import { mailConfigured, sendMail } from './_lib/mail';
+import { renderVerifyEmail } from './_lib/mailTemplates';
 import { EMAIL_RE, SCHOOL_EMAIL_RE, clientIp, normalizeEmail, readBody } from './_lib/http';
 
 // POST { email } -> 给该邮箱发 6 位验证码（10 分钟有效，同一邮箱 60 秒内只能发一次，同一 IP 每小时最多 20 次）
@@ -56,18 +57,7 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    await sendMail({
-      to: email,
-      subject: `SCLS Campus Shop 验证码 / Verification code: ${code}`,
-      text: `Your SCLS Campus Shop verification code is ${code}. It expires in 10 minutes.\n您的 SCLS Campus Shop 验证码是 ${code}，10 分钟内有效。`,
-      html: `
-        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;max-width:420px;margin:0 auto;padding:24px;color:#000">
-          <h2 style="margin:0 0 12px;color:#174D3D">SCLS Campus Shop</h2>
-          <p style="margin:0 0 16px;color:#4A5E55">Your verification code / 您的验证码</p>
-          <p style="margin:0 0 16px;font-size:34px;letter-spacing:10px;font-weight:700;color:#174D3D">${code}</p>
-          <p style="margin:0;font-size:12px;color:#4A5E55">Valid for 10 minutes. If this wasn't you, you can ignore this email.<br/>10 分钟内有效。如果不是您本人操作，请忽略这封邮件。</p>
-        </div>`,
-    });
+    await sendMail({ to: email, ...renderVerifyEmail(code) });
 
     res.status(200).json({ ok: true });
   } catch (error) {
