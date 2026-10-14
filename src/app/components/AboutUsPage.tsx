@@ -11,6 +11,12 @@ import {
 
 type Tone = 'light' | 'dark';
 
+// 统一字阶：正文 / 标题 / 大标题在全页只用这一套，不再跟随后台逐段的字号
+const BODY_SIZE = 'text-base sm:text-[17px]';
+const DISPLAY_SIZE = 'text-4xl sm:text-5xl';
+const CLOSING_SIZE = 'text-3xl sm:text-4xl';
+const DISPLAY_WEIGHT = 'font-semibold';
+
 /** 文字内容与编辑器数据保持不变，这里只把颜色映射成适配当前底色的主题色 */
 function adaptColor(color: string, tone: Tone): string {
   const isAccent = color.includes('#ff6b35') || color.includes('ff6b');
@@ -34,9 +40,16 @@ function renderInlineBlocks(
     tone?: Tone;
     align?: 'left' | 'center';
     sizeOverride?: string;
+    weightOverride?: string;
   } = {},
 ) {
-  const { headingTag = 'h1', tone = 'light', align = 'left', sizeOverride } = options;
+  const {
+    headingTag = 'h1',
+    tone = 'light',
+    align = 'left',
+    sizeOverride,
+    weightOverride,
+  } = options;
   const lines: AboutUsTextBlock[][] = [[]];
 
   for (const block of blocks) {
@@ -53,13 +66,13 @@ function renderInlineBlocks(
       <Tag
         key={lineIdx}
         className={`w-full ${align === 'center' ? 'text-center' : 'text-left'} ${
-          lineIdx > 0 ? 'mt-3 sm:mt-4' : ''
+          lineIdx > 0 ? 'pt-1 sm:pt-2' : ''
         }`}
       >
         {line.map((block, idx) => (
           <span key={idx}>
             <span
-              className={`${sizeOverride ?? block.fontSize} ${block.fontWeight} ${adaptColor(
+              className={`${sizeOverride ?? block.fontSize} ${weightOverride ?? block.fontWeight} ${adaptColor(
                 block.color,
                 tone,
               )} break-words leading-[1.15]`}
@@ -86,7 +99,9 @@ function isMemberListBlock(text: string): boolean {
   );
 }
 
-function renderMemberList(block: AboutUsTextBlock, idx: number, tone: Tone) {
+type Surface = 'white' | 'mint';
+
+function renderMemberList(block: AboutUsTextBlock, idx: number, tone: Tone, surface: Surface) {
   const lines = block.text.split('\n').filter((line) => line.trim() !== '');
   const heading = lines[0] ?? '';
   const members: string[] = [];
@@ -106,11 +121,15 @@ function renderMemberList(block: AboutUsTextBlock, idx: number, tone: Tone) {
     <div
       key={idx}
       className={`w-full rounded-2xl border p-6 text-left sm:p-7 ${
-        dark ? 'border-white/15 bg-white/[0.06]' : 'border-[#D6E2DC] bg-white'
+        dark
+          ? 'border-white/15 bg-white/[0.06]'
+          : surface === 'white'
+            ? 'border-[#D6E2DC] bg-[#F4F8F6]'
+            : 'border-[#D6E2DC] bg-white'
       }`}
     >
       <p
-        className={`mb-5 text-xs font-semibold uppercase tracking-[0.18em] ${
+        className={`pb-5 text-xs font-semibold uppercase tracking-[0.18em] ${
           dark ? 'text-[#A8D5C2]' : 'text-[#174D3D]'
         }`}
       >
@@ -123,7 +142,9 @@ function renderMemberList(block: AboutUsTextBlock, idx: number, tone: Tone) {
             className={`rounded-full border px-4 py-1.5 text-sm font-medium ${
               dark
                 ? 'border-white/20 bg-white/10 text-white'
-                : 'border-[#D6E2DC] bg-[#F4F8F6] text-black'
+                : surface === 'white'
+                  ? 'border-[#D6E2DC] bg-white text-black'
+                  : 'border-[#D6E2DC] bg-[#F4F8F6] text-black'
             }`}
           >
             {name}
@@ -133,7 +154,7 @@ function renderMemberList(block: AboutUsTextBlock, idx: number, tone: Tone) {
       {footnotes.map((note, noteIdx) => (
         <p
           key={noteIdx}
-          className={`mt-5 text-xs font-normal leading-[1.6] ${
+          className={`pt-5 text-xs font-normal leading-[1.6] ${
             dark ? 'text-white/60' : 'text-[#4A5E55]'
           }`}
         >
@@ -148,10 +169,11 @@ function renderParagraph(
   block: AboutUsTextBlock,
   idx: number,
   tone: Tone,
+  surface: Surface,
   sectionId?: string,
 ) {
   if (sectionId === 'team' && isMemberListBlock(block.text)) {
-    return renderMemberList(block, idx, tone);
+    return renderMemberList(block, idx, tone, surface);
   }
 
   const dark = tone === 'dark';
@@ -164,7 +186,7 @@ function renderParagraph(
       return (
         <p
           key={lineIdx}
-          className={`mb-3 text-xs font-semibold uppercase tracking-[0.18em] ${
+          className={`pb-3 text-xs font-semibold uppercase tracking-[0.18em] ${
             dark ? 'text-[#A8D5C2]' : 'text-[#174D3D]'
           }`}
         >
@@ -177,7 +199,7 @@ function renderParagraph(
       return (
         <p
           key={lineIdx}
-          className={`mt-3 text-xs font-normal ${dark ? 'text-white/60' : 'text-[#4A5E55]'}`}
+          className={`pt-3 text-xs font-normal ${dark ? 'text-white/60' : 'text-[#4A5E55]'}`}
         >
           {line}
         </p>
@@ -185,7 +207,7 @@ function renderParagraph(
     }
 
     return (
-      <p key={lineIdx} className={lineIdx > 0 && !(lineIdx === 1 && hasHeadingLine) ? 'mt-4' : ''}>
+      <p key={lineIdx} className={lineIdx > 0 && !(lineIdx === 1 && hasHeadingLine) ? 'pt-4' : ''}>
         {line}
       </p>
     );
@@ -196,7 +218,7 @@ function renderParagraph(
     return (
       <div
         key={idx}
-        className={`w-full border-l-2 py-1 pl-5 text-left text-lg font-semibold leading-[1.7] break-words ${
+        className={`w-full border-l-2 py-1 pl-5 text-left ${BODY_SIZE} font-semibold leading-[1.8] break-words ${
           dark ? 'border-[#A8D5C2]' : 'border-[#174D3D]'
         } ${adaptColor(block.color, tone)}`}
       >
@@ -208,10 +230,10 @@ function renderParagraph(
   return (
     <div
       key={idx}
-      className={`${block.fontSize} font-normal ${adaptColor(
+      className={`${BODY_SIZE} font-normal ${adaptColor(
         block.color,
         tone,
-      )} w-full text-left leading-[1.75] break-words`}
+      )} w-full text-left leading-[1.8] break-words`}
     >
       {body}
     </div>
@@ -220,15 +242,45 @@ function renderParagraph(
 
 const SECTION_THEMES: {
   bg: string;
+  surface: Surface;
   tone: Tone;
   number: string;
   title: string;
   rule: string;
 }[] = [
-  { bg: 'bg-white', tone: 'light', number: 'text-[#174D3D]/20', title: 'text-black', rule: 'bg-[#174D3D]' },
-  { bg: 'bg-[#EEF4F1]', tone: 'light', number: 'text-[#174D3D]/20', title: 'text-black', rule: 'bg-[#174D3D]' },
-  { bg: 'bg-[#174D3D]', tone: 'dark', number: 'text-white/25', title: 'text-white', rule: 'bg-[#A8D5C2]' },
+  {
+    bg: 'bg-white',
+    surface: 'white',
+    tone: 'light',
+    number: 'text-[#174D3D]/20',
+    title: 'text-black',
+    rule: 'bg-[#174D3D]',
+  },
+  {
+    bg: 'bg-[#EEF4F1]',
+    surface: 'mint',
+    tone: 'light',
+    number: 'text-[#174D3D]/20',
+    title: 'text-black',
+    rule: 'bg-[#174D3D]',
+  },
 ];
+
+/** 旧版 How to Buy 仍提到「注册账号」，网站已改为免登录下单，遇到旧数据时换成最新默认文案 */
+function migrateLegacyContent(content: AboutUsContent): AboutUsContent {
+  const fresh = DEFAULT_ABOUT_US_CONTENT.sections.find((s) => s.id === 'how-to-buy');
+  if (!fresh) return content;
+  const isLegacy = (text: string) => /account registration|注册账号/i.test(text);
+  return {
+    ...content,
+    sections: content.sections.map((section) =>
+      section.id === 'how-to-buy' &&
+      [...section.paragraphsEn, ...section.paragraphsCn].some((p) => isLegacy(p.text))
+        ? fresh
+        : section,
+    ),
+  };
+}
 
 export default function AboutUsPage() {
   const { language, t } = useLanguage();
@@ -238,7 +290,7 @@ export default function AboutUsPage() {
     try {
       const res = await callEdgeFunction('/aboutus-content', { method: 'GET', requireAuth: false });
       if (res?.content) {
-        setContent(res.content);
+        setContent(migrateLegacyContent(res.content));
       }
     } catch (e) {
       console.error('[ABOUTUS] Failed to load content, using defaults:', e);
@@ -262,23 +314,24 @@ export default function AboutUsPage() {
         <div className="pointer-events-none absolute -right-16 -top-16 h-[20rem] w-[20rem] rounded-full border border-white/10" />
         <div className="pointer-events-none absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-white/[0.04]" />
 
-        <div className={`${inner} relative grid items-center gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:gap-20`}>
+        <article className={`${inner} relative grid items-center gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:gap-20`}>
           <div>
-            <div className="mb-8 flex items-center gap-4">
+            <div className="flex items-center gap-4 pb-8">
               <span className="h-px w-12 bg-[#A8D5C2]" />
               <span className="text-xs font-medium uppercase tracking-[0.28em] text-[#A8D5C2]">
                 {t('About Us', '关于我们')}
               </span>
             </div>
-            <div className="space-y-1">
+            <div>
               {renderInlineBlocks(heroBlocks, {
                 tone: 'dark',
-                sizeOverride: 'text-4xl sm:text-5xl lg:text-6xl',
+                sizeOverride: DISPLAY_SIZE,
+                weightOverride: DISPLAY_WEIGHT,
               })}
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-sm lg:ml-auto lg:mr-0">
+          <article className="relative mx-auto w-full max-w-sm lg:ml-auto lg:mr-0">
             <div className="pointer-events-none absolute inset-0 translate-x-4 translate-y-4 rounded-[2rem] border border-white/25" />
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-2xl shadow-black/30">
               <OptimizedImage
@@ -290,11 +343,11 @@ export default function AboutUsPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
-          </div>
-        </div>
+          </article>
+        </article>
       </section>
 
-      {/* 内容分区：白 / 浅绿 / 深绿 交替，左侧编号 + 标题，右侧正文 */}
+      {/* 内容分区：白 / 浅绿 交替，左侧编号 + 标题，右侧正文 */}
       {content.sections.map((section, sectionIdx) => {
         const paragraphs = language === 'en' ? section.paragraphsEn : section.paragraphsCn;
         const title = language === 'en' ? section.titleEn : section.titleCn;
@@ -305,7 +358,7 @@ export default function AboutUsPage() {
             key={section.id}
             className={`${theme.bg} ${gutter} py-16 sm:py-20 lg:py-24`}
           >
-            <div className={`${inner} grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20`}>
+            <article className={`${inner} grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20`}>
               <div className="lg:sticky lg:top-[calc(10vh+2rem)] lg:self-start">
                 <span
                   className={`block text-6xl font-semibold leading-none tracking-tight sm:text-7xl ${theme.number}`}
@@ -321,21 +374,27 @@ export default function AboutUsPage() {
               </div>
 
               <div className="flex flex-col gap-6">
-                {paragraphs.map((block, idx) => renderParagraph(block, idx, theme.tone, section.id))}
+                {paragraphs.map((block, idx) => renderParagraph(block, idx, theme.tone, theme.surface, section.id))}
               </div>
-            </div>
+            </article>
           </section>
         );
       })}
 
-      {/* 结尾：黑底居中致谢 */}
-      <section className={`relative overflow-hidden bg-black ${gutter} py-20 sm:py-28`}>
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
-        <div className="relative mx-auto max-w-3xl">
-          <span className="mx-auto mb-10 block h-px w-12 bg-[#A8D5C2]" />
-          {renderInlineBlocks(thankYouBlocks, { headingTag: 'h2', tone: 'dark', align: 'center' })}
-        </div>
+      {/* 结尾：浅绿底居中致谢（与下方深绿页脚衔接） */}
+      <section className={`relative overflow-hidden bg-[#EEF4F1] ${gutter} py-20 sm:py-28`}>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#174D3D]/10" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#174D3D]/10" />
+        <article className="relative mx-auto max-w-3xl">
+          <span className="mx-auto mb-10 block h-[3px] w-12 rounded-full bg-[#174D3D]" />
+          {renderInlineBlocks(thankYouBlocks, {
+            headingTag: 'h2',
+            tone: 'light',
+            align: 'center',
+            sizeOverride: CLOSING_SIZE,
+            weightOverride: DISPLAY_WEIGHT,
+          })}
+        </article>
       </section>
     </div>
   );
