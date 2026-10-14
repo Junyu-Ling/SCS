@@ -195,7 +195,7 @@ function Router() {
   // Show SubNavbar on all pages except home and tags selection page
   const showSubNavbar = currentPage !== '/' && currentPage !== '/home' && currentPage !== '/tag' && currentPage !== '/login' && currentPage !== '/admin' && !currentPage.startsWith('/auth/callback') && currentPage !== '/terms-of-use' && currentPage !== '/termsOfUse' && currentPage !== '/privacy-policy' && currentPage !== '/privacyPolicy' && currentPage !== '/update-history' && currentPage !== '/updateHistory';
 
-  const showFooter = currentPage !== '/tag' && currentPage !== '/login' && !currentPage.startsWith('/auth/callback') && currentPage !== '/terms-of-use' && currentPage !== '/termsOfUse' && currentPage !== '/privacy-policy' && currentPage !== '/privacyPolicy' && currentPage !== '/update-history' && currentPage !== '/updateHistory';
+  const showFooter = currentPage !== '/tag' && currentPage !== '/login' && !currentPage.startsWith('/auth/callback');
   
   // HomePage and TagsPage should have no top padding
   const showMainPadding = currentPage !== '/' && currentPage !== '/home' && currentPage !== '/tag';

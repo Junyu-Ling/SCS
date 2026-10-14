@@ -50,24 +50,47 @@ export default function UpdateHistoryPage() {
         '跟踪 SCLS Campus Shop 的最新更新和改进'
       )}
     >
-      <div className="space-y-6 sm:space-y-8">
-        {updates.map((update, index) => (
-          <article
-            key={index}
-            className="relative pl-5 sm:pl-8 py-2 border-l-4 border-yellow-500"
-          >
-            <p className="text-xs sm:text-sm text-gray-400 mb-2 break-words">
-              {update.date}
-            </p>
-            <h2 className="text-xl sm:text-2xl font-normal mb-2 sm:mb-3 text-black break-words">
-              {update.title}
-            </h2>
-            <p className="text-sm sm:text-base text-[#4A5E55] leading-relaxed break-words">
-              {update.description}
-            </p>
-          </article>
-        ))}
-      </div>
+      <ol className="flex flex-col gap-6">
+        {updates.map((update, index) => {
+          const latest = index === 0;
+          return (
+            <li
+              key={index}
+              className="grid gap-3 md:grid-cols-[minmax(0,3fr)_minmax(0,9fr)] md:gap-10"
+            >
+              <div className="flex items-start gap-3 md:justify-end md:text-right">
+                <span
+                  className={`mt-[0.45em] h-2.5 w-2.5 shrink-0 rounded-full md:order-2 ${
+                    latest ? 'bg-[#174D3D] ring-4 ring-[#174D3D]/15' : 'bg-[#174D3D]/40'
+                  }`}
+                />
+                <span className="break-words text-sm font-medium leading-[1.6] text-[#4A5E55] md:order-1">
+                  {update.date}
+                </span>
+              </div>
+
+              <article
+                className={`rounded-2xl border p-6 sm:p-7 ${
+                  latest
+                    ? 'border-[#174D3D] bg-[#174D3D] text-white'
+                    : 'border-[#D6E2DC] bg-[#F4F8F6] text-black'
+                }`}
+              >
+                <h2 className="break-words text-lg font-semibold leading-snug sm:text-xl">
+                  {update.title}
+                </h2>
+                <p
+                  className={`break-words pt-3 text-base leading-[1.8] sm:text-[17px] ${
+                    latest ? 'text-white/80' : 'text-[#4A5E55]'
+                  }`}
+                >
+                  {update.description}
+                </p>
+              </article>
+            </li>
+          );
+        })}
+      </ol>
     </LegalPageShell>
   );
 }
