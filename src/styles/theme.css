@@ -309,36 +309,9 @@ html.theme-transitioning video {
     padding: 1.35rem;
   }
 
-  .shop-detail-frame {
-    position: relative;
-    overflow: hidden;
-    background-color: #fff;
-    aspect-ratio: 1;
-    width: 100%;
-    max-width: 17.5rem;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
   @media (min-width: 640px) {
     .shop-product-img {
       padding: 1.85rem;
-    }
-
-    .shop-detail-frame {
-      max-width: 22rem;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .shop-detail-frame {
-      margin-right: 0;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .shop-detail-frame {
-      max-width: 26rem;
     }
   }
 }

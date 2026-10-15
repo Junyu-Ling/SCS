@@ -12,7 +12,7 @@ export function ProductDetailSkeleton() {
           {/* 左侧 - 图片 */}
           <div className="space-y-4">
             {/* 主图 */}
-            <Skeleton className="shop-detail-frame rounded-lg" />
+            <Skeleton className="w-full aspect-square rounded-lg" />
             
             {/* 缩略图 */}
             <div className="flex gap-2">
