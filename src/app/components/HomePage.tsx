@@ -13,7 +13,7 @@ export default function HomePage() {
 
   return (
     <div className="relative w-full overflow-x-hidden bg-white">
-      <div className="relative min-h-[85vh] sm:min-h-[90vh] md:min-h-[100vh] w-full flex items-center justify-center overflow-hidden pt-[10vh]">
+      <div className="relative min-h-[68vh] sm:min-h-[72vh] md:min-h-[78vh] w-full flex items-center justify-center overflow-hidden pt-[10vh]">
         <OptimizedImage
           src={bgImage}
           alt="Campus Shop"

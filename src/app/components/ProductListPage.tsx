@@ -117,7 +117,7 @@ export default function ProductListPage() {
 
           {/* Product Grid - 使用优化的 ProductCard 组件 */}
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

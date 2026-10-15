@@ -8,7 +8,7 @@ export function ProductCardSkeleton() {
   return (
     <div className="bg-card rounded-lg shadow-md overflow-hidden border border-border">
       {/* 图片骨架 */}
-      <Skeleton className="w-full aspect-square" />
+      <Skeleton className="shop-product-frame" />
       
       {/* 内容骨架 */}
       <div className="p-4 space-y-3">

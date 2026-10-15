@@ -361,9 +361,9 @@ export default function AboutUsPage() {
             </div>
           </div>
 
-          <article className="relative mx-auto w-full max-w-sm lg:ml-auto lg:mr-0">
-            <div className="pointer-events-none absolute inset-0 translate-x-4 translate-y-4 rounded-[2rem] border border-white/25" />
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-2xl shadow-black/30">
+          <article className="relative mx-auto w-full max-w-[16.5rem] sm:max-w-xs lg:ml-auto lg:mr-0">
+            <div className="pointer-events-none absolute inset-0 translate-x-3 translate-y-3 rounded-[1.5rem] border border-white/25" />
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] shadow-2xl shadow-black/30">
               <OptimizedImage
                 src={heroImage}
                 alt={t('About Us', '关于我们')}

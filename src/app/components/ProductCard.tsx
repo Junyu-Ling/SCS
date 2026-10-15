@@ -33,13 +33,13 @@ export const ProductCard = React.memo(({
       className="bg-white rounded-xl overflow-hidden cursor-pointer group border border-[#D6E2DC] transition-colors hover:border-[#BFD0C8]"
     >
       {/* Product Image */}
-      <div className="relative aspect-square bg-white overflow-hidden">
+      <div className="shop-product-frame">
         {primaryImage ? (
           <OptimizedImage
             src={primaryImage}
             fallbackSrc={fallbackImage && fallbackImage !== primaryImage ? fallbackImage : undefined}
             alt={language === 'en' ? product.name.en : product.name.cn}
-            className="w-full h-full object-contain p-4 group-hover:scale-[1.03] transition-transform duration-500"
+            className="shop-product-img group-hover:scale-[1.03] transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">

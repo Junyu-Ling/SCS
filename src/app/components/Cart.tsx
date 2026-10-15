@@ -175,7 +175,7 @@ export default function Cart() {
                       />
                     </div>
 
-                    <div className="w-20 h-20 flex-shrink-0 bg-muted rounded overflow-hidden">
+                    <div className="w-16 h-16 flex-shrink-0 bg-muted rounded overflow-hidden">
                       <ImageWithFallback
                         src={item.image}
                         alt={item.name}

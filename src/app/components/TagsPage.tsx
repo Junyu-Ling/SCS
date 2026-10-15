@@ -101,7 +101,7 @@ export default function TagsPage() {
                 <a
                   key={category.id}
                   href={category.href}
-                  className="group relative overflow-hidden rounded-xl flex-shrink-0 cursor-pointer border border-[#D6E2DC] w-[260px] h-[380px]"
+                  className="group relative overflow-hidden rounded-xl flex-shrink-0 cursor-pointer border border-[#D6E2DC] w-[210px] h-[300px]"
                 >
                   <OptimizedImage
                     src={category.image}
@@ -122,12 +122,12 @@ export default function TagsPage() {
       </div>
 
       <div className="lg:hidden px-4 pb-10">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {categories.map((category) => (
             <a
               key={category.id}
               href={category.href}
-              className="group relative overflow-hidden rounded-xl aspect-[3/4] cursor-pointer border border-[#D6E2DC] touch-manipulation"
+              className="group relative overflow-hidden rounded-xl aspect-[4/5] cursor-pointer border border-[#D6E2DC] touch-manipulation"
             >
               <OptimizedImage
                 src={category.image}
