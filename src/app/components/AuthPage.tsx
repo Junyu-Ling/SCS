@@ -116,7 +116,14 @@ export default function AuthPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <OTPInput length={CODE_LENGTH} value={code} onChange={setCode} disabled={busy} />
+              <OTPInput
+                length={CODE_LENGTH}
+                value={code}
+                onChange={setCode}
+                disabled={busy}
+                autoFocus
+                ariaLabel={t('6-digit code', '6 位验证码')}
+              />
             </div>
           )}
         </CardContent>

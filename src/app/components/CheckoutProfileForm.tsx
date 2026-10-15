@@ -9,6 +9,7 @@ import {
   type CheckoutProfile,
 } from '../contexts/CheckoutProfileContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { OTPInput } from './OTPInput';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -91,7 +92,7 @@ export default function CheckoutProfileForm({
     if (!emailLooksValid || sending || cooldown > 0) return;
     setSending(true);
     try {
-      const { ok, data } = await postJson('/api/send-code', { email: emailValue.trim() });
+      const { ok, data } = await postJson('/api/send-code', { email: emailValue.trim().toLowerCase() });
       if (!ok) {
         toast.error(data.error || t('Failed to send the code', '验证码发送失败'));
         return;
@@ -111,7 +112,7 @@ export default function CheckoutProfileForm({
     if (!/^\d{6}$/.test(code) || verifying) return;
     setVerifying(true);
     try {
-      const { ok, data } = await postJson('/api/verify-code', { email: emailValue.trim(), code });
+      const { ok, data } = await postJson('/api/verify-code', { email: emailValue.trim().toLowerCase(), code });
       if (!ok) {
         toast.error(data.error || t('Verification failed', '验证失败'));
         return;
@@ -121,8 +122,9 @@ export default function CheckoutProfileForm({
         toast.error(t('Verification failed', '验证失败'));
         return;
       }
-      bindVerifiedEmail({ ...value, email: emailValue.trim() }, verifyToken);
-      onChange({ ...value, email: emailValue.trim().toLowerCase(), emailVerified: true, verifyToken });
+      const verifiedEmail = emailValue.trim().toLowerCase();
+      bindVerifiedEmail({ ...value, email: verifiedEmail }, verifyToken);
+      onChange({ ...value, email: verifiedEmail, emailVerified: true, verifyToken });
       setCodeSent(false);
       setCode('');
       toast.success(t('Email verified and bound to this device', '邮箱已验证，并绑定到这台设备'));
@@ -224,21 +226,20 @@ export default function CheckoutProfileForm({
         ) : null}
 
         {!locked && codeSent ? (
-          <div className="flex items-center gap-2 pt-1">
-            <Input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
+          <div className="flex flex-col gap-2 pt-1">
+            <OTPInput
+              length={6}
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              placeholder={t('6-digit code', '6 位验证码')}
-              className="h-10 min-w-0 flex-1 rounded-xl tracking-[0.3em]"
+              onChange={setCode}
+              disabled={verifying}
+              autoFocus
+              ariaLabel={t('6-digit code', '6 位验证码')}
             />
             <Button
               type="button"
               onClick={handleVerify}
               disabled={code.length !== 6 || verifying}
-              className="h-10 shrink-0 rounded-xl px-4"
+              className="h-10 w-full rounded-xl"
             >
               {t('Verify', '验证')}
             </Button>

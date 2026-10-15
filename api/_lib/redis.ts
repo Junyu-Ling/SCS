@@ -4,14 +4,23 @@
 type Arg = string | number;
 type Command = Arg[];
 
-const REST_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '';
-const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
+const REST_URL = (process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').trim();
+const REST_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '').trim();
 
 export const hasRedis = Boolean(REST_URL && REST_TOKEN);
 
+/** 线上（Vercel）必须用共享 Redis；否则每个 Serverless 实例各有一份内存，发码后校验必然“找不到”。 */
+export function redisConfigured(): boolean {
+  return hasRedis || !process.env.VERCEL;
+}
+
 // ---------- 内存回退实现 ----------
 type Entry = { value: unknown; expiresAt?: number };
-const memory = new Map<string, Entry>();
+const memory: Map<string, Entry> = (() => {
+  const g = globalThis as typeof globalThis & { __sclsMemoryRedis?: Map<string, Entry> };
+  if (!g.__sclsMemoryRedis) g.__sclsMemoryRedis = new Map<string, Entry>();
+  return g.__sclsMemoryRedis;
+})();
 
 function memGet(key: string): Entry | undefined {
   const entry = memory.get(key);
@@ -31,10 +40,26 @@ function memExec(cmd: Command): unknown {
     case 'GET':
       return (memGet(key)?.value as string | undefined) ?? null;
     case 'SET': {
-      const opts = rest.slice(2).map((v) => String(v).toUpperCase());
-      if (opts.includes('NX') && memGet(key)) return null;
-      const exIdx = opts.indexOf('EX');
-      const expiresAt = exIdx >= 0 ? Date.now() + Number(rest[2 + exIdx + 1]) * 1000 : undefined;
+      let nx = false;
+      let ttlSeconds: number | undefined;
+      for (let i = 2; i < rest.length; i += 1) {
+        const opt = String(rest[i]).toUpperCase();
+        if (opt === 'NX') {
+          nx = true;
+          continue;
+        }
+        if (opt === 'XX') continue;
+        if (opt === 'EX' || opt === 'PX') {
+          const rawTtl = Number(rest[i + 1]);
+          i += 1;
+          if (Number.isFinite(rawTtl) && rawTtl > 0) {
+            ttlSeconds = opt === 'PX' ? rawTtl / 1000 : rawTtl;
+          }
+          continue;
+        }
+      }
+      if (nx && memGet(key)) return null;
+      const expiresAt = ttlSeconds ? Date.now() + ttlSeconds * 1000 : undefined;
       memory.set(key, { value: String(rest[1]), expiresAt });
       return 'OK';
     }

@@ -1,12 +1,12 @@
 import { randomInt } from 'node:crypto';
-import { command } from './_lib/redis.js';
+import { command, redisConfigured } from './_lib/redis.js';
 import { mailConfigured, sendMail } from './_lib/mail.js';
 import { renderVerifyEmail } from './_lib/mailTemplates.js';
 import { EMAIL_RE, SCHOOL_EMAIL_RE, clientIp, normalizeEmail, readBody } from './_lib/http.js';
+import { OTP_STORE_UNAVAILABLE, saveCode } from './_lib/otp.js';
 
 // POST { email } -> 给该邮箱发 6 位验证码（10 分钟有效，同一邮箱 60 秒内只能发一次，同一 IP 每小时最多 20 次）
 
-const CODE_TTL_SECONDS = 600;
 const COOLDOWN_SECONDS = 60;
 const IP_LIMIT_PER_HOUR = 20;
 
@@ -29,6 +29,11 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    if (!redisConfigured()) {
+      res.status(503).json({ error: OTP_STORE_UNAVAILABLE });
+      return;
+    }
+
     const ipKey = `code:ip:${clientIp(req)}`;
     const ipCount = Number(await command('INCR', ipKey));
     if (ipCount === 1) await command('EXPIRE', ipKey, 3600);
@@ -37,14 +42,14 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const cooldown = await command('SET', `code:cooldown:${email}`, '1', 'EX', COOLDOWN_SECONDS, 'NX');
+    const cooldown = await command('SET', `code:cooldown:${email}`, '1', 'EX', String(COOLDOWN_SECONDS), 'NX');
     if (cooldown === null) {
       res.status(429).json({ error: 'Please wait a minute before requesting another code / 请 1 分钟后再重新获取验证码' });
       return;
     }
 
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
-    await command('SET', `code:${email}`, JSON.stringify({ code, attempts: 0 }), 'EX', CODE_TTL_SECONDS);
+    await saveCode(email, code);
 
     if (!mailConfigured()) {
       // 本地开发没配发信服务时，把验证码打在终端里，方便调试；线上（有 VERCEL 变量）绝不返回验证码

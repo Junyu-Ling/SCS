@@ -1,124 +1,116 @@
-import { useRef, useEffect, KeyboardEvent, ClipboardEvent } from 'react';
+import { useRef, KeyboardEvent, ClipboardEvent } from 'react';
 
 interface OTPInputProps {
   length?: number;
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  autoFocus?: boolean;
+  ariaLabel?: string;
 }
 
-export function OTPInput({ length = 8, value, onChange, disabled = false }: OTPInputProps) {
+export function OTPInput({
+  length = 6,
+  value,
+  onChange,
+  disabled = false,
+  autoFocus = false,
+  ariaLabel = 'Verification code',
+}: OTPInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  
-  // 将value拆分为数组
-  const digits = value.split('').slice(0, length);
-  while (digits.length < length) {
-    digits.push('');
-  }
+  const digits = Array.from({ length }, (_, i) => value[i] ?? '');
 
-  useEffect(() => {
-    // 初始化时聚焦到第一个输入框
-    if (inputRefs.current[0] && !disabled) {
-      inputRefs.current[0].focus();
-    }
-  }, [disabled]);
+  const focusAt = (index: number) => {
+    const next = Math.max(0, Math.min(index, length - 1));
+    inputRefs.current[next]?.focus();
+    inputRefs.current[next]?.select();
+  };
 
-  const handleChange = (index: number, newValue: string) => {
-    // 只允许数字
-    const sanitized = newValue.replace(/[^0-9]/g, '');
-    
+  const emit = (nextDigits: string[]) => {
+    onChange(nextDigits.join('').replace(/\D/g, '').slice(0, length));
+  };
+
+  const handleChange = (index: number, raw: string) => {
+    const sanitized = raw.replace(/\D/g, '');
     if (sanitized.length === 0) {
-      // 删除当前数字
-      const newDigits = [...digits];
-      newDigits[index] = '';
-      onChange(newDigits.join(''));
+      const next = [...digits];
+      next[index] = '';
+      emit(next);
       return;
     }
 
     if (sanitized.length === 1) {
-      // 输入单个数字
-      const newDigits = [...digits];
-      newDigits[index] = sanitized;
-      onChange(newDigits.join(''));
-      
-      // 自动跳到下一个输入框
-      if (index < length - 1) {
-        inputRefs.current[index + 1]?.focus();
-      }
-    } else if (sanitized.length > 1) {
-      // 处理粘贴多个数字的情况
-      const newDigits = [...digits];
-      for (let i = 0; i < sanitized.length && index + i < length; i++) {
-        newDigits[index + i] = sanitized[i];
-      }
-      onChange(newDigits.join(''));
-      
-      // 聚焦到最后一个填充的输入框之后
-      const nextIndex = Math.min(index + sanitized.length, length - 1);
-      inputRefs.current[nextIndex]?.focus();
+      const next = [...digits];
+      next[index] = sanitized;
+      emit(next);
+      if (index < length - 1) focusAt(index + 1);
+      return;
     }
+
+    const next = [...digits];
+    for (let i = 0; i < sanitized.length && index + i < length; i += 1) {
+      next[index + i] = sanitized[i];
+    }
+    emit(next);
+    focusAt(Math.min(index + sanitized.length, length - 1));
   };
 
   const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
-      if (digits[index] === '') {
-        // 当前框为空，删除前一个
-        if (index > 0) {
-          const newDigits = [...digits];
-          newDigits[index - 1] = '';
-          onChange(newDigits.join(''));
-          inputRefs.current[index - 1]?.focus();
-        }
-      } else {
-        // 当前框有值，删除当前
-        const newDigits = [...digits];
-        newDigits[index] = '';
-        onChange(newDigits.join(''));
-      }
       e.preventDefault();
-    } else if (e.key === 'ArrowLeft' && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+      if (digits[index]) {
+        const next = [...digits];
+        next[index] = '';
+        emit(next);
+        return;
+      }
+      if (index > 0) {
+        const next = [...digits];
+        next[index - 1] = '';
+        emit(next);
+        focusAt(index - 1);
+      }
+      return;
+    }
+    if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
+      focusAt(index - 1);
     } else if (e.key === 'ArrowRight' && index < length - 1) {
-      inputRefs.current[index + 1]?.focus();
+      e.preventDefault();
+      focusAt(index + 1);
     }
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text');
-    const sanitized = pastedData.replace(/[^0-9]/g, '').slice(0, length);
-    
-    if (sanitized.length > 0) {
-      const newDigits = sanitized.split('');
-      while (newDigits.length < length) {
-        newDigits.push('');
-      }
-      onChange(newDigits.join(''));
-      
-      // 聚焦到最后一个填充的输入框
-      const lastIndex = Math.min(sanitized.length - 1, length - 1);
-      inputRefs.current[lastIndex]?.focus();
-    }
+    const sanitized = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
+    if (!sanitized) return;
+    const next = Array.from({ length }, (_, i) => sanitized[i] ?? '');
+    emit(next);
+    focusAt(Math.min(sanitized.length, length) - 1);
   };
 
   return (
-    <div className="flex gap-2 justify-center">
+    <div className="flex justify-center gap-1.5 sm:gap-2" role="group" aria-label={ariaLabel}>
       {digits.map((digit, index) => (
         <input
           key={index}
-          ref={(el) => (inputRefs.current[index] = el)}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
           type="text"
           inputMode="numeric"
+          autoComplete={index === 0 ? 'one-time-code' : 'off'}
+          autoFocus={autoFocus && index === 0}
           maxLength={1}
           value={digit}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
+          onFocus={(e) => e.currentTarget.select()}
           disabled={disabled}
-          className="w-12 h-14 text-center text-2xl font-bold border-2 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            fontVariantNumeric: 'tabular-nums'
-          }}
+          aria-label={`${ariaLabel} ${index + 1}`}
+          className="h-10 w-10 shrink-0 rounded-md border border-[#D6E2DC] bg-white text-center text-lg font-semibold tabular-nums text-[#174D3D] outline-none transition-all focus:border-[#174D3D] focus:ring-2 focus:ring-[#174D3D]/15 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-11"
         />
       ))}
     </div>
