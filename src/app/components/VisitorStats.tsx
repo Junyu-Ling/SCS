@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 
-// 在线人数由 Vercel 函数 /api/stats 统计（见 api/stats.ts）
+// /api/stats（见 api/stats.ts）：
+//   左下 Visitor = 累计独立访客 UV（localStorage 持久 visitorId，服务端 SET 去重）
+//   右下 Online  = 最近 60 秒内有心跳的人数
+// 左边不是 PV、不是当日、不是当前在线。
 const API = '/api';
 const STORAGE_KEY = 'scls_visitor_id';
 
@@ -67,10 +70,19 @@ export default function VisitorStats() {
 
   return (
     <>
-      <div className={`fixed bottom-3 left-3 z-20 ${pill}`}>
-        {t('Visitors', '累计访问')} {total === null ? '—' : formatCount(total)}
+      <div
+        className={`fixed bottom-3 left-3 z-20 ${pill}`}
+        title={t(
+          'Cumulative unique visitors',
+          '累计独立访客（非当日、非浏览次数、非当前在线）',
+        )}
+      >
+        {t('Visitors', '累计访问用户量')} {total === null ? '—' : formatCount(total)}
       </div>
-      <div className={`fixed bottom-3 right-3 z-20 ${pill}`}>
+      <div
+        className={`fixed bottom-3 right-3 z-20 ${pill}`}
+        title={t('Currently online', '最近 60 秒内有心跳的访客')}
+      >
         {t('Online', '当前在线')} {online === null ? '—' : formatCount(online)}
       </div>
     </>

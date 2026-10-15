@@ -21,7 +21,8 @@ import { CATALOG_BY_ID, type CatalogEntry } from '../../src/app/data/catalog.js'
  *  code:<email>                STRING 邮箱验证码 { code, attempts }，10 分钟过期（api/send-code.ts）
  *  code:cooldown:<email>       STRING 发码冷却（60 秒）
  *  rl:<bucket>:<ip>            STRING IP 限流计数
- *  stats:*                     访问 / 在线统计（api/stats.ts）
+ *  stats:seen                  SET    累计独立访客 visitorId（SCARD = 左下 Visitor）
+ *  stats:online                ZSET   最近心跳（ZCARD = 右下 Online，60 秒 TTL）
  * ============================================================================
  */
 

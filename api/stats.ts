@@ -1,9 +1,11 @@
 import { pipeline } from './_lib/redis.js';
 import { readBody } from './_lib/http.js';
 
-// 累计访问 / 当前在线：
+// 累计独立访客 / 当前在线：
 //   POST { visitorId } 心跳（前端每 25 秒一次），GET 只读。
-//   累计 = 见过的不同 visitorId 数；在线 = 最近 60 秒内有心跳的 visitorId 数。
+//   total  = 累计独立访客 UV（Redis SET stats:seen 的基数，见过的不同 visitorId）。
+//            不是 PV、不是当日、不是当前在线。
+//   online = 最近 60 秒内有心跳的 visitorId 数。
 
 const ONLINE_TTL_MS = 60_000;
 const VISITOR_ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
