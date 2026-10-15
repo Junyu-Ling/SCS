@@ -1,17 +1,61 @@
 // 极简 Redis 客户端：生产环境走 Upstash（Vercel Marketplace 里的 Upstash Redis / KV）REST 接口，
 // 没配置环境变量时退回进程内存（仅用于本地开发，Vercel 上每个实例互相独立，不能当真实存储用）。
+//
+// 必须用 process.env[name] 动态读取：模块顶层的 process.env.UPSTASH_* 可能在构建期被打成空字符串，
+// 线上即使已经配好变量也会被误判成「未配置」。
 
 type Arg = string | number;
 type Command = Arg[];
 
-const REST_URL = (process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').trim();
-const REST_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '').trim();
+function env(name: string): string {
+  return (process.env[name] ?? '').trim();
+}
 
-export const hasRedis = Boolean(REST_URL && REST_TOKEN);
+function firstEnv(...names: string[]): string {
+  for (const name of names) {
+    const value = env(name);
+    if (value) return value;
+  }
+  return '';
+}
 
-/** 线上（Vercel）必须用共享 Redis；否则每个 Serverless 实例各有一份内存，发码后校验必然“找不到”。 */
+function restUrl(): string {
+  const url = firstEnv(
+    'UPSTASH_REDIS_REST_URL',
+    'KV_REST_API_URL',
+    'REDIS_REST_URL',
+    'UPSTASH_REDIS_URL',
+  );
+  if (url) return url;
+
+  // REDIS_URL / KV_URL 有时是 https REST 端点，有时是 redis:// TCP；REST 客户端只能用前者
+  const fallback = firstEnv('REDIS_URL', 'KV_URL');
+  return fallback.startsWith('https://') ? fallback : '';
+}
+
+function restToken(): string {
+  return firstEnv(
+    'UPSTASH_REDIS_REST_TOKEN',
+    'KV_REST_API_TOKEN',
+    'KV_REST_API_READ_WRITE_TOKEN',
+    'REDIS_REST_TOKEN',
+    'UPSTASH_REDIS_TOKEN',
+  );
+}
+
+export function hasRedis(): boolean {
+  return Boolean(restUrl() && restToken());
+}
+
+/** 只有托管在 Vercel 的 Production / Preview 才强制共享存储；本地和 `vercel dev` 可走内存。 */
+function requiresSharedRedis(): boolean {
+  const vercelEnv = env('VERCEL_ENV');
+  return vercelEnv === 'production' || vercelEnv === 'preview';
+}
+
+/** 线上（Vercel Production/Preview）必须用共享 Redis；否则每个 Serverless 实例各有一份内存，发码后校验必然“找不到”。 */
 export function redisConfigured(): boolean {
-  return hasRedis || !process.env.VERCEL;
+  return hasRedis() || !requiresSharedRedis();
 }
 
 // ---------- 内存回退实现 ----------
@@ -157,13 +201,15 @@ function memExec(cmd: Command): unknown {
 
 // ---------- 对外接口 ----------
 export async function pipeline(commands: Command[]): Promise<unknown[]> {
-  if (!hasRedis) {
+  const url = restUrl();
+  const token = restToken();
+  if (!url || !token) {
     return commands.map(memExec);
   }
 
-  const res = await fetch(`${REST_URL}/pipeline`, {
+  const res = await fetch(`${url}/pipeline`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${REST_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(commands),
   });
   if (!res.ok) throw new Error(`Redis request failed: ${res.status}`);
