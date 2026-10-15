@@ -4,9 +4,10 @@ import { useLanguage } from '../contexts/LanguageContext';
 // /api/stats（见 api/stats.ts）：
 //   左下 Visitor = 累计独立访客 UV（localStorage 持久 visitorId，服务端 SET 去重）
 //   右下 Online  = 最近 60 秒内有心跳的人数
-// 左边不是 PV、不是当日、不是当前在线。
+// 左边不是 PV、不是当日、不是当前在线；展示值只增不减。
 const API = '/api';
 const STORAGE_KEY = 'scls_visitor_id';
+const TOTAL_HW_KEY = 'scls_visitor_total_hw';
 
 function getVisitorId() {
   try {
@@ -21,13 +22,33 @@ function getVisitorId() {
   }
 }
 
+function readHighWater(): number {
+  try {
+    const n = Number(localStorage.getItem(TOTAL_HW_KEY));
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeHighWater(n: number) {
+  try {
+    localStorage.setItem(TOTAL_HW_KEY, String(n));
+  } catch {
+    /* ignore */
+  }
+}
+
 function formatCount(n: number) {
   return n.toLocaleString();
 }
 
 export default function VisitorStats() {
   const { t } = useLanguage();
-  const [total, setTotal] = useState<number | null>(null);
+  const [total, setTotal] = useState<number | null>(() => {
+    const hw = readHighWater();
+    return hw > 0 ? hw : null;
+  });
   const [online, setOnline] = useState<number | null>(null);
 
   useEffect(() => {
@@ -44,8 +65,17 @@ export default function VisitorStats() {
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
-        if (typeof data.total === 'number') setTotal(data.total);
-        if (typeof data.online === 'number') setOnline(data.online);
+        if (typeof data.total === 'number' && Number.isFinite(data.total)) {
+          // Visitor 是累计 UV：UI 与本地高水位都只升不降。
+          setTotal((prev) => {
+            const next = Math.max(prev ?? 0, Math.floor(data.total), readHighWater());
+            writeHighWater(next);
+            return next;
+          });
+        }
+        if (typeof data.online === 'number' && Number.isFinite(data.online)) {
+          setOnline(Math.max(0, Math.floor(data.online)));
+        }
       } catch {
         /* 后端未部署时保持占位 */
       }
@@ -73,8 +103,8 @@ export default function VisitorStats() {
       <div
         className={`fixed bottom-3 left-3 z-20 ${pill}`}
         title={t(
-          'Cumulative unique visitors',
-          '累计独立访客（非当日、非浏览次数、非当前在线）',
+          'Cumulative unique visitors (never decreases)',
+          '累计独立访客，只增不减（非当日、非浏览次数、非当前在线）',
         )}
       >
         {t('Visitors', '累计访问用户量')} {total === null ? '—' : formatCount(total)}
