@@ -383,14 +383,14 @@ export default function ProductDetail() {
 
       {/* 🖼️ 图片预览对话框 */}
       <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-4xl w-full p-0 bg-black border-none">
+        <DialogContent className="max-w-[80vw] sm:max-w-2xl w-full p-0 bg-black border-none">
           <DialogTitle className="sr-only">
             {t('Image Preview', '图片预览')}
           </DialogTitle>
           <DialogDescription className="sr-only">
             {t('Full size image preview', '全尺寸图片预览')}
           </DialogDescription>
-          <div className="relative aspect-square w-full bg-black">
+          <div className="relative aspect-square w-full max-h-[75vh] bg-black">
             {/* 关闭按钮 */}
             <button
               onClick={() => setImagePreviewOpen(false)}
@@ -406,7 +406,7 @@ export default function ProductDetail() {
                 <img
                   src={effectiveImages[previewImageIndex]}
                   alt={`${language === 'en' ? productData.name.en : productData.name.cn} - ${previewImageIndex + 1}`}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full max-h-[75vh] object-contain"
                 />
 
                 {/* 导航按钮 - 只在多图时显示 */}
