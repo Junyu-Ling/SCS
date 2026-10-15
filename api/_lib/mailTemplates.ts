@@ -1,4 +1,6 @@
-// 邮件模板（纯函数，无副作用）。
+import { tr, type Lang } from './lang.js';
+
+// 邮件模板（纯函数，无副作用）。只输出一种语言，由调用方传入当前界面语言（默认英文）。
 // 邮件客户端安全：table 布局 + 内联 CSS，无外部资源 / 字体 / 脚本；所有元素显式写背景色与文字色（深色模式友好）。
 // 所有动态字符串都会经过 HTML 转义。
 
@@ -123,11 +125,11 @@ function itemVariant(item: MailOrderItem): string {
 
 // ---------------------------------------------------------------- 公共 HTML 片段
 
-type LayoutOptions = { title: string; subtitle?: string; preheader: string; body: string };
+type LayoutOptions = { lang: Lang; title: string; subtitle?: string; preheader: string; body: string };
 
-function layout({ title, subtitle, preheader, body }: LayoutOptions): string {
+function layout({ lang, title, subtitle, preheader, body }: LayoutOptions): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="${lang === 'cn' ? 'zh-CN' : 'en'}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -154,7 +156,7 @@ ${body}
     </td></tr>
     <tr><td bgcolor="${C.white}" style="background-color:${C.white};padding:0 24px 26px 24px;font-family:${FONT};border-left:1px solid ${C.line};border-right:1px solid ${C.line};border-bottom:1px solid ${C.line};border-radius:0 0 16px 16px;">
       <div style="height:1px;line-height:1px;font-size:1px;background-color:${C.line};margin:0 0 16px 0;">&nbsp;</div>
-      <div style="font-size:12px;line-height:18px;color:${C.muted};">SCLS Campus Shop &middot; 学校内部校园商店<br />This is an automated message, please do not reply to it directly. 这是一封系统自动发送的邮件，请勿直接回复。</div>
+      <div style="font-size:12px;line-height:18px;color:${C.muted};">${tr(lang, 'SCLS Campus Shop &middot; Campus store', '宋校文创商品店 &middot; 学校内部校园商店')}<br />${tr(lang, 'This is an automated message, please do not reply to it directly.', '这是一封系统自动发送的邮件，请勿直接回复。')}</div>
     </td></tr>
   </table>
 </td></tr>
@@ -163,94 +165,89 @@ ${body}
 </html>`;
 }
 
-// 英文主句 + 中文辅句
-function para(en: string, zh?: string, extraStyle = ''): string {
-  return `<p style="margin:0 0 16px 0;color:${C.ink};${extraStyle}">${en}${
-    zh ? `<br /><span style="font-size:13.5px;line-height:21px;color:${C.muted};">${zh}</span>` : ''
-  }</p>`;
+function para(text: string, extraStyle = ''): string {
+  return `<p style="margin:0 0 16px 0;color:${C.ink};${extraStyle}">${text}</p>`;
 }
 
-function contactCard(): string {
+function contactCard(lang: Lang): string {
   const mail = escapeHtml(ADMIN_CONTACT.email);
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 0 0;border-collapse:separate;border-spacing:0;">
   <tr><td bgcolor="${C.tint}" style="background-color:${C.tint};border-left:4px solid ${C.green};border-radius:8px;padding:14px 18px;font-family:${FONT};">
-    <div style="font-size:13px;line-height:20px;color:${C.muted};">Need help? Contact our IT administrator<br />需要帮助？请联系 IT 管理员</div>
+    <div style="font-size:13px;line-height:20px;color:${C.muted};">${tr(lang, 'Need help? Contact our IT administrator', '需要帮助？请联系 IT 管理员')}</div>
     <div style="margin-top:6px;font-size:20px;line-height:28px;font-weight:700;color:${C.green};">${escapeHtml(ADMIN_CONTACT.name)}</div>
     <div style="margin-top:2px;font-size:15px;line-height:24px;word-break:break-all;"><a href="mailto:${mail}" style="color:${C.green};text-decoration:underline;">${mail}</a></div>
   </td></tr>
 </table>`;
 }
 
-function signOff(): string {
-  return `<p style="margin:24px 0 0 0;color:${C.ink};">We wish you a pleasant experience and a wonderful day ahead 😊<br />
-<span style="font-size:13.5px;line-height:21px;color:${C.muted};">祝您购物愉快，度过美好的一天 😊</span></p>
-<p style="margin:16px 0 20px 0;color:${C.ink};">Best regards,<br /><strong style="color:${C.green};">The SCS (SCLS Campus Shop) Team ❤</strong></p>`;
+function signOff(lang: Lang): string {
+  return `<p style="margin:24px 0 0 0;color:${C.ink};">${tr(lang, 'We wish you a pleasant experience and a wonderful day ahead 😊', '祝您购物愉快，度过美好的一天 😊')}</p>
+<p style="margin:16px 0 20px 0;color:${C.ink};">${tr(lang, 'Best regards,', '此致，')}<br /><strong style="color:${C.green};">${tr(lang, 'The SCS (SCLS Campus Shop) Team ❤', 'SCS（宋校文创商品店）团队 ❤')}</strong></p>`;
 }
 
-const TEXT_CONTACT = `Need help? Contact our IT administrator / 需要帮助？请联系 IT 管理员\n${ADMIN_CONTACT.name} - ${ADMIN_CONTACT.email}`;
+const textContact = (lang: Lang) =>
+  `${tr(lang, 'Need help? Contact our IT administrator', '需要帮助？请联系 IT 管理员')}\n${ADMIN_CONTACT.name} - ${ADMIN_CONTACT.email}`;
 
 // ---------------------------------------------------------------- 1. 验证码邮件
 
-export function renderVerifyEmail(code: string): RenderedMail {
+export function renderVerifyEmail(code: string, lang: Lang = 'en'): RenderedMail {
   const safeCode = escapeHtml(code);
   const plainCode = cleanLine(code, 20);
+  const shop = tr(lang, 'SCS (SCLS Campus Shop)', 'SCS（宋校文创商品店）');
 
   const body = `
-${para(
-  `Thank you for registering with <strong>SCS (SCLS Campus Shop)</strong>. We're delighted to have you join our campus community.`,
-  `感谢您注册 <strong>SCS (SCLS Campus Shop)</strong>，欢迎加入我们的校园社区。`,
-)}
-${para('To activate your account, please use the verification code below:', '请使用下方验证码激活您的账号：')}
+${para(tr(
+  lang,
+  `Thank you for registering with <strong>${shop}</strong>. We're delighted to have you join our campus community.`,
+  `感谢您注册 <strong>${shop}</strong>，欢迎加入我们的校园社区。`,
+))}
+${para(tr(lang, 'To activate your account, please use the verification code below:', '请使用下方验证码激活您的账号：'))}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 20px 0;border-collapse:separate;border-spacing:0;">
   <tr><td align="center" bgcolor="${C.tint}" style="background-color:${C.tint};border:2px dashed ${C.mint};border-radius:12px;padding:20px 12px 18px 12px;font-family:${FONT};">
     <div style="font-family:${MONO};font-size:34px;line-height:42px;font-weight:700;letter-spacing:8px;padding-left:8px;color:${C.green};">${safeCode}</div>
-    <div style="margin-top:8px;font-size:13px;line-height:20px;color:${C.muted};">Valid for ${CODE_TTL_MINUTES} minutes &middot; ${CODE_TTL_MINUTES} 分钟内有效</div>
+    <div style="margin-top:8px;font-size:13px;line-height:20px;color:${C.muted};">${tr(lang, `Valid for ${CODE_TTL_MINUTES} minutes`, `${CODE_TTL_MINUTES} 分钟内有效`)}</div>
   </td></tr>
 </table>
-${para('Please enter this code in the app or website to complete your registration.', '请在网站中输入此验证码，完成注册。')}
-<p style="margin:0;font-size:13.5px;line-height:21px;color:${C.muted};">This verification code will expire in ${CODE_TTL_MINUTES} minutes. If it expires, please request a new one.<br />验证码将在 ${CODE_TTL_MINUTES} 分钟后失效，失效后请重新获取。</p>
-${contactCard()}
-<p style="margin:24px 0 0 0;color:${C.ink};">If you did not create this account, you may safely ignore this email.<br />
-<span style="font-size:13.5px;line-height:21px;color:${C.muted};">如果这不是您本人的操作，请直接忽略这封邮件。</span></p>
-${signOff()}`;
+${para(tr(lang, 'Please enter this code on the website to complete verification.', '请在网站中输入此验证码，完成验证。'))}
+<p style="margin:0;font-size:13.5px;line-height:21px;color:${C.muted};">${tr(lang, `This verification code will expire in ${CODE_TTL_MINUTES} minutes. If it expires, please request a new one.`, `验证码将在 ${CODE_TTL_MINUTES} 分钟后失效，失效后请重新获取。`)}</p>
+${contactCard(lang)}
+<p style="margin:24px 0 0 0;color:${C.ink};">${tr(lang, 'If you did not request this code, you may safely ignore this email.', '如果这不是您本人的操作，请直接忽略这封邮件。')}</p>
+${signOff(lang)}`;
 
   const html = layout({
-    title: 'Welcome to SCS (SCLS Campus Shop) ❤',
-    subtitle: '欢迎来到 SCS 校园商店',
-    preheader: `Your verification code is ${plainCode} (valid for ${CODE_TTL_MINUTES} minutes). 您的验证码是 ${plainCode}。`,
+    lang,
+    title: tr(lang, 'Welcome to SCS (SCLS Campus Shop) ❤', '欢迎来到 SCS 校园商店 ❤'),
+    preheader: tr(lang, `Your verification code is ${plainCode} (valid for ${CODE_TTL_MINUTES} minutes).`, `您的验证码是 ${plainCode}，${CODE_TTL_MINUTES} 分钟内有效。`),
     body,
   });
 
   const text = [
-    'Welcome to SCS (SCLS Campus Shop) ❤ / 欢迎来到 SCS 校园商店',
+    tr(lang, 'Welcome to SCS (SCLS Campus Shop) ❤', '欢迎来到 SCS 校园商店 ❤'),
     '',
-    "Thank you for registering with SCS (SCLS Campus Shop). We're delighted to have you join our campus community.",
-    '感谢您注册 SCS (SCLS Campus Shop)，欢迎加入我们的校园社区。',
+    tr(lang, "Thank you for registering with SCS (SCLS Campus Shop). We're delighted to have you join our campus community.", '感谢您注册 SCS（宋校文创商品店），欢迎加入我们的校园社区。'),
     '',
-    'To activate your account, please use the verification code below:',
-    '请使用下方验证码激活您的账号：',
+    tr(lang, 'To activate your account, please use the verification code below:', '请使用下方验证码激活您的账号：'),
     '',
     `    ${plainCode}`,
     '',
-    `Valid for ${CODE_TTL_MINUTES} minutes. / ${CODE_TTL_MINUTES} 分钟内有效。`,
-    'Please enter this code in the app or website to complete your registration. If it expires, please request a new one.',
-    '请在网站中输入此验证码完成注册；失效后请重新获取。',
+    tr(lang, `Valid for ${CODE_TTL_MINUTES} minutes.`, `${CODE_TTL_MINUTES} 分钟内有效。`),
+    tr(lang, 'Please enter this code on the website. If it expires, please request a new one.', '请在网站中输入此验证码；失效后请重新获取。'),
     '',
-    TEXT_CONTACT,
+    textContact(lang),
     '',
-    'If you did not create this account, you may safely ignore this email. / 如果这不是您本人的操作，请直接忽略这封邮件。',
+    tr(lang, 'If you did not request this code, you may safely ignore this email.', '如果这不是您本人的操作，请直接忽略这封邮件。'),
     '',
-    'We wish you a pleasant experience and a wonderful day ahead 😊',
-    'Best regards,',
-    'The SCS (SCLS Campus Shop) Team ❤',
+    tr(lang, 'We wish you a pleasant experience and a wonderful day ahead 😊', '祝您购物愉快，度过美好的一天 😊'),
+    tr(lang, 'Best regards,', '此致，'),
+    tr(lang, 'The SCS (SCLS Campus Shop) Team ❤', 'SCS（宋校文创商品店）团队 ❤'),
   ].join('\n');
 
-  return { subject: `SCS 验证码 / Verification code: ${plainCode}`, html, text };
+  return { subject: tr(lang, `SCS verification code: ${plainCode}`, `SCS 验证码：${plainCode}`), html, text };
 }
 
 // ---------------------------------------------------------------- 订单表格（学生 / 管理员共用）
 
-function itemsTable(items: MailOrderItem[], total: number, compact: boolean): string {
+function itemsTable(items: MailOrderItem[], total: number, compact: boolean, lang: Lang): string {
   const pad = compact ? '8px 4px' : '12px 4px';
   const fs = compact ? 13 : 14;
   const th = (label: string, align: 'left' | 'right' | 'center', width?: string) =>
@@ -263,7 +260,7 @@ function itemsTable(items: MailOrderItem[], total: number, compact: boolean): st
       const variant = itemVariant(item);
       return `<tr>
     <td valign="top" style="padding:${pad};border-bottom:1px solid ${C.line};font-family:${FONT};font-size:${fs}px;line-height:20px;color:${C.ink};background-color:${C.white};"><strong>${escapeHtml(cleanLine(item.name, 120))}</strong>${
-      `<br /><span style="font-size:12px;line-height:18px;color:${C.muted};">${escapeHtml(variant ? `${variant} · ` : '')}${money(unit)} each 每件</span>`
+      `<br /><span style="font-size:12px;line-height:18px;color:${C.muted};">${escapeHtml(variant ? `${variant} · ` : '')}${money(unit)} ${tr(lang, 'each', '每件')}</span>`
     }</td>
     <td valign="top" align="center" style="padding:${pad};border-bottom:1px solid ${C.line};font-family:${FONT};font-size:${fs}px;line-height:20px;color:${C.ink};background-color:${C.white};">&times;${q}</td>
     <td valign="top" align="right" style="padding:${pad};border-bottom:1px solid ${C.line};font-family:${FONT};font-size:${fs}px;line-height:20px;font-weight:700;color:${C.ink};background-color:${C.white};white-space:nowrap;">${money(unit * q)}</td>
@@ -272,10 +269,10 @@ function itemsTable(items: MailOrderItem[], total: number, compact: boolean): st
     .join('\n  ');
 
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0;">
-  <tr>${th('Item 商品', 'left')}${th('Qty<br />数量', 'center', '44')}${th('Total<br />小计', 'right', '64')}</tr>
+  <tr>${th(tr(lang, 'Item', '商品'), 'left')}${th(tr(lang, 'Qty', '数量'), 'center', '44')}${th(tr(lang, 'Total', '小计'), 'right', '64')}</tr>
   ${rows}
   <tr><td colspan="3" align="right" style="padding:14px 4px 4px 4px;font-family:${FONT};background-color:${C.white};">
-    <span style="font-size:13px;line-height:20px;color:${C.muted};">Total 合计&nbsp;&nbsp;</span><span style="font-size:${compact ? 20 : 24}px;line-height:30px;font-weight:700;color:${C.green};">${money(total)}</span>
+    <span style="font-size:13px;line-height:20px;color:${C.muted};">${tr(lang, 'Total', '合计')}&nbsp;&nbsp;</span><span style="font-size:${compact ? 20 : 24}px;line-height:30px;font-weight:700;color:${C.green};">${money(total)}</span>
   </td></tr>
 </table>`;
 }
@@ -292,7 +289,7 @@ function itemsText(items: MailOrderItem[]): string {
 
 // ---------------------------------------------------------------- 2. 学生订单确认邮件
 
-export function renderOrderConfirmationEmail(order: MailOrder): RenderedMail {
+export function renderOrderConfirmationEmail(order: MailOrder, lang: Lang = 'en'): RenderedMail {
   const items = order.items ?? [];
   const total = orderTotal(order);
   const label = orderLabel(order);
@@ -301,97 +298,103 @@ export function renderOrderConfirmationEmail(order: MailOrder): RenderedMail {
   const note = String(order.buyer?.note ?? '').trim();
   const created = formatTime(order.createdAt);
 
-  const infoRow = (en: string, zh: string, value: string) =>
+  const infoRow = (labelText: string, value: string) =>
     `<tr>
-      <td valign="top" width="1" style="white-space:nowrap;padding:6px 16px 6px 0;font-family:${FONT};font-size:13px;line-height:20px;color:${C.muted};">${en} ${zh}</td>
+      <td valign="top" width="1" style="white-space:nowrap;padding:6px 16px 6px 0;font-family:${FONT};font-size:13px;line-height:20px;color:${C.muted};">${labelText}</td>
       <td valign="top" style="padding:6px 0;font-family:${FONT};font-size:14px;line-height:20px;font-weight:600;color:${C.ink};">${value}</td>
     </tr>`;
 
   const info = [
-    infoRow('Order', '订单号', `<span style="font-family:${MONO};color:${C.green};">${escapeHtml(label)}</span>`),
-    name ? infoRow('Name', '姓名', escapeHtml(name)) : '',
-    className ? infoRow('Class', '班级', escapeHtml(className)) : '',
-    created ? infoRow('Placed', '下单时间', escapeHtml(created)) : '',
+    infoRow(tr(lang, 'Order', '订单号'), `<span style="font-family:${MONO};color:${C.green};">${escapeHtml(label)}</span>`),
+    name ? infoRow(tr(lang, 'Name', '姓名'), escapeHtml(name)) : '',
+    className ? infoRow(tr(lang, 'Class', '班级'), escapeHtml(className)) : '',
+    created ? infoRow(tr(lang, 'Placed', '下单时间'), escapeHtml(created)) : '',
   ].join('');
 
   const body = `
-${para(
+${para(tr(
+  lang,
   `Hi${name ? ` <strong>${escapeHtml(name)}</strong>` : ''}, thank you for your order at <strong>SCS (SCLS Campus Shop)</strong>! We have received your reservation.`,
-  `${name ? `${escapeHtml(name)}，` : ''}感谢您在 <strong>SCS (SCLS Campus Shop)</strong>下单！我们已收到您的预订。`,
-)}
+  `${name ? `${escapeHtml(name)}，` : ''}感谢您在 <strong>SCS（宋校文创商品店）</strong>下单！我们已收到您的预订。`,
+))}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 20px 0;border-collapse:separate;border-spacing:0;">
   <tr><td bgcolor="${C.tint}" style="background-color:${C.tint};border:1px solid ${C.line};border-radius:12px;padding:10px 18px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${info}</table>
   </td></tr>
 </table>
-<div style="margin:0 0 8px 0;font-family:${FONT};font-size:12px;line-height:18px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${C.green};">Your items &middot; 订单商品</div>
-${itemsTable(items, total, false)}
+<div style="margin:0 0 8px 0;font-family:${FONT};font-size:12px;line-height:18px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${C.green};">${tr(lang, 'Your items', '订单商品')}</div>
+${itemsTable(items, total, false, lang)}
 ${
   note
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0 0 0;border-collapse:separate;border-spacing:0;">
-  <tr><td bgcolor="${C.tint}" style="background-color:${C.tint};border-radius:8px;padding:12px 16px;font-family:${FONT};font-size:14px;line-height:21px;color:${C.ink};"><span style="font-size:12px;color:${C.muted};">Your note 您的备注</span><br />${escMultiline(note)}</td></tr>
+  <tr><td bgcolor="${C.tint}" style="background-color:${C.tint};border-radius:8px;padding:12px 16px;font-family:${FONT};font-size:14px;line-height:21px;color:${C.ink};"><span style="font-size:12px;color:${C.muted};">${tr(lang, 'Your note', '您的备注')}</span><br />${escMultiline(note)}</td></tr>
 </table>`
     : ''
 }
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 0 0;border-collapse:separate;border-spacing:0;">
   <tr><td bgcolor="${C.white}" style="background-color:${C.white};border:2px dashed ${C.mint};border-radius:12px;padding:14px 18px;font-family:${FONT};font-size:14px;line-height:22px;color:${C.ink};">
-    <strong style="color:${C.green};">📦 Pickup / 取货说明</strong><br />
-    This is a campus pickup reservation. We will contact you at this email address with pickup details once your items are ready.<br />
-    <span style="font-size:13px;line-height:21px;color:${C.muted};">这是校内自取预订。商品准备好后，我们会通过此邮箱联系您，告知取货安排。请保留此邮件作为凭证。</span>
+    <strong style="color:${C.green};">${tr(lang, '📦 Pickup', '📦 取货说明')}</strong><br />
+    ${tr(lang, 'This is a campus pickup reservation. We will contact you at this email address with pickup details once your items are ready. Please keep this email as your receipt.', '这是校内自取预订。商品准备好后，我们会通过此邮箱联系您，告知取货安排。请保留此邮件作为凭证。')}
   </td></tr>
 </table>
-${contactCard()}
-<p style="margin:24px 0 0 0;color:${C.ink};">If you did not place this order, please let us know right away.<br />
-<span style="font-size:13.5px;line-height:21px;color:${C.muted};">如果这不是您本人下的订单，请立即联系我们。</span></p>
-${signOff()}`;
+${contactCard(lang)}
+<p style="margin:24px 0 0 0;color:${C.ink};">${tr(lang, 'If you did not place this order, please let us know right away.', '如果这不是您本人下的订单，请立即联系我们。')}</p>
+${signOff(lang)}`;
 
   const html = layout({
-    title: 'Order received 🎉',
-    subtitle: `订单已收到 · ${escapeHtml(label)}`,
-    preheader: `We received your order ${label} (${money(total)}). 我们已收到您的订单。`,
+    lang,
+    title: tr(lang, 'Order received 🎉', '订单已收到 🎉'),
+    subtitle: escapeHtml(label),
+    preheader: tr(lang, `We received your order ${label} (${money(total)}).`, `我们已收到您的订单 ${label}（${money(total)}）。`),
     body,
   });
 
   const text = [
-    `Order received 🎉 / 订单已收到 (${label})`,
+    tr(lang, `Order received 🎉 (${label})`, `订单已收到 🎉（${label}）`),
     '',
-    `Hi${name ? ` ${name}` : ''}, thank you for your order at SCS (SCLS Campus Shop)! We have received your reservation.`,
-    '感谢您在 SCS (SCLS Campus Shop)下单！我们已收到您的预订。',
+    tr(
+      lang,
+      `Hi${name ? ` ${name}` : ''}, thank you for your order at SCS (SCLS Campus Shop)! We have received your reservation.`,
+      `${name ? `${name}，` : ''}感谢您在 SCS（宋校文创商品店）下单！我们已收到您的预订。`,
+    ),
     '',
-    `Order / 订单号: ${label}`,
-    name ? `Name / 姓名: ${name}` : '',
-    className ? `Class / 班级: ${className}` : '',
-    created ? `Placed / 下单时间: ${created}` : '',
+    `${tr(lang, 'Order', '订单号')}: ${label}`,
+    name ? `${tr(lang, 'Name', '姓名')}: ${name}` : '',
+    className ? `${tr(lang, 'Class', '班级')}: ${className}` : '',
+    created ? `${tr(lang, 'Placed', '下单时间')}: ${created}` : '',
     '',
-    'Items / 订单商品:',
+    `${tr(lang, 'Items', '订单商品')}:`,
     itemsText(items),
-    `Total / 合计: ${money(total)}`,
-    note ? `\nYour note / 您的备注: ${note}` : '',
+    `${tr(lang, 'Total', '合计')}: ${money(total)}`,
+    note ? `\n${tr(lang, 'Your note', '您的备注')}: ${note}` : '',
     '',
-    'Pickup / 取货说明: This is a campus pickup reservation. We will contact you at this email address with pickup details once your items are ready.',
-    '这是校内自取预订。商品准备好后，我们会通过此邮箱联系您，告知取货安排。',
+    tr(
+      lang,
+      'Pickup: This is a campus pickup reservation. We will contact you at this email address with pickup details once your items are ready.',
+      '取货说明：这是校内自取预订。商品准备好后，我们会通过此邮箱联系您，告知取货安排。',
+    ),
     '',
-    TEXT_CONTACT,
+    textContact(lang),
     '',
-    'If you did not place this order, please let us know right away. / 如果这不是您本人下的订单，请立即联系我们。',
+    tr(lang, 'If you did not place this order, please let us know right away.', '如果这不是您本人下的订单，请立即联系我们。'),
     '',
-    'We wish you a pleasant experience and a wonderful day ahead 😊',
-    'Best regards,',
-    'The SCS (SCLS Campus Shop) Team ❤',
+    tr(lang, 'We wish you a pleasant experience and a wonderful day ahead 😊', '祝您购物愉快，度过美好的一天 😊'),
+    tr(lang, 'Best regards,', '此致，'),
+    tr(lang, 'The SCS (SCLS Campus Shop) Team ❤', 'SCS（宋校文创商品店）团队 ❤'),
   ]
     .filter((line, i, arr) => !(line === '' && arr[i - 1] === ''))
     .join('\n');
 
-  return { subject: `SCS 订单确认 / Order confirmation ${label}`, html, text };
+  return { subject: tr(lang, `SCS order confirmation ${label}`, `SCS 订单确认 ${label}`), html, text };
 }
 
 // ---------------------------------------------------------------- 3. 管理员通知邮件
 
-export function renderAdminOrderNotificationEmail(order: MailOrder): RenderedMail {
+export function renderAdminOrderNotificationEmail(order: MailOrder, lang: Lang = 'en'): RenderedMail {
   const items = order.items ?? [];
   const total = orderTotal(order);
   const label = orderLabel(order);
-  const name = cleanLine(order.buyer?.realName, 60) || '(unknown)';
+  const name = cleanLine(order.buyer?.realName, 60) || tr(lang, '(unknown)', '（未知）');
   const className = cleanLine(order.buyer?.className, 60) || '-';
   const email = cleanLine(order.buyer?.email, 200);
   const note = String(order.buyer?.note ?? '').trim();
@@ -412,44 +415,45 @@ export function renderAdminOrderNotificationEmail(order: MailOrder): RenderedMai
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;border-collapse:separate;border-spacing:0;">
   <tr><td bgcolor="${C.tint}" style="background-color:${C.tint};border:1px solid ${C.line};border-radius:12px;padding:8px 18px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      ${row('Order 订单', `<span style="font-family:${MONO};color:${C.green};">${escapeHtml(label)}</span>`)}
-      ${row('Name 姓名', escapeHtml(name))}
-      ${row('Class 班级', escapeHtml(className))}
-      ${row('Email 邮箱', emailHtml)}
-      ${created ? row('Time 时间', escapeHtml(created)) : ''}
+      ${row(tr(lang, 'Order', '订单'), `<span style="font-family:${MONO};color:${C.green};">${escapeHtml(label)}</span>`)}
+      ${row(tr(lang, 'Name', '姓名'), escapeHtml(name))}
+      ${row(tr(lang, 'Class', '班级'), escapeHtml(className))}
+      ${row(tr(lang, 'Email', '邮箱'), emailHtml)}
+      ${created ? row(tr(lang, 'Time', '时间'), escapeHtml(created)) : ''}
     </table>
   </td></tr>
 </table>
-${itemsTable(items, total, true)}
+${itemsTable(items, total, true, lang)}
 ${
   note
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 0 0;border-collapse:separate;border-spacing:0;">
-  <tr><td bgcolor="${C.tint}" style="background-color:${C.tint};border-left:4px solid ${C.mint};border-radius:8px;padding:10px 14px;font-family:${FONT};font-size:14px;line-height:21px;color:${C.ink};"><span style="font-size:12px;color:${C.muted};">Note 备注</span><br />${escMultiline(note)}</td></tr>
+  <tr><td bgcolor="${C.tint}" style="background-color:${C.tint};border-left:4px solid ${C.mint};border-radius:8px;padding:10px 14px;font-family:${FONT};font-size:14px;line-height:21px;color:${C.ink};"><span style="font-size:12px;color:${C.muted};">${tr(lang, 'Note', '备注')}</span><br />${escMultiline(note)}</td></tr>
 </table>`
     : ''
 }
-<p style="margin:20px 0 20px 0;font-size:12px;line-height:18px;color:${C.muted};">Reply to the buyer directly at the email above to arrange pickup. 如需安排取货，请直接联系上方邮箱。</p>`;
+<p style="margin:20px 0 20px 0;font-size:12px;line-height:18px;color:${C.muted};">${tr(lang, 'Reply to the buyer directly at the email above to arrange pickup.', '如需安排取货，请直接联系上方邮箱。')}</p>`;
 
   const html = layout({
-    title: `🛒 New order ${escapeHtml(label)}`,
-    subtitle: `${escapeHtml(name)} · ${count} item${count === 1 ? '' : 's'} · ${money(total)}`,
-    preheader: `${name} (${className}) placed an order: ${money(total)}`,
+    lang,
+    title: tr(lang, `🛒 New order ${escapeHtml(label)}`, `🛒 新订单 ${escapeHtml(label)}`),
+    subtitle: `${escapeHtml(name)} · ${tr(lang, `${count} item${count === 1 ? '' : 's'}`, `${count} 件`)} · ${money(total)}`,
+    preheader: tr(lang, `${name} (${className}) placed an order: ${money(total)}`, `${name}（${className}）下了一笔订单：${money(total)}`),
     body,
   });
 
   const text = [
-    `New order ${label} / 新订单`,
-    `Name / 姓名: ${name}`,
-    `Class / 班级: ${className}`,
-    `Email / 邮箱: ${email || '-'}`,
-    created ? `Time / 时间: ${created}` : '',
+    tr(lang, `New order ${label}`, `新订单 ${label}`),
+    `${tr(lang, 'Name', '姓名')}: ${name}`,
+    `${tr(lang, 'Class', '班级')}: ${className}`,
+    `${tr(lang, 'Email', '邮箱')}: ${email || '-'}`,
+    created ? `${tr(lang, 'Time', '时间')}: ${created}` : '',
     '',
     itemsText(items),
-    `Total / 合计: ${money(total)}`,
-    note ? `\nNote / 备注: ${note}` : '',
+    `${tr(lang, 'Total', '合计')}: ${money(total)}`,
+    note ? `\n${tr(lang, 'Note', '备注')}: ${note}` : '',
   ]
     .filter((line, i, arr) => !(line === '' && arr[i - 1] === ''))
     .join('\n');
 
-  return { subject: `[SCS] New order ${label} · ${cleanLine(name, 40)} · ${money(total)}`, html, text };
+  return { subject: tr(lang, `[SCS] New order ${label} · ${cleanLine(name, 40)} · ${money(total)}`, `[SCS] 新订单 ${label} · ${cleanLine(name, 40)} · ${money(total)}`), html, text };
 }

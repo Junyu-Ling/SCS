@@ -114,6 +114,8 @@ export default function ProductDetail() {
     addToCart({
       commodityId: productData.id,
       name: language === 'en' ? productData.name.en : productData.name.cn,
+      nameEn: productData.name.en,
+      nameCn: productData.name.cn,
       price: productData.price,
       quantity,
       option: selectedSize,
@@ -158,7 +160,7 @@ export default function ProductDetail() {
                         handlePrevImage();
                       }}
                       className="absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 touch-manipulation"
-                      aria-label="Previous image"
+                      aria-label={t('Previous image', '上一张')}
                     >
                       <ChevronLeft className="w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                     </button>
@@ -168,7 +170,7 @@ export default function ProductDetail() {
                         handleNextImage();
                       }}
                       className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 touch-manipulation"
-                      aria-label="Next image"
+                      aria-label={t('Next image', '下一张')}
                     >
                       <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                     </button>
@@ -188,7 +190,7 @@ export default function ProductDetail() {
                         className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all touch-manipulation ${
                           index === currentImageIndex ? 'bg-gray-800 w-4 sm:w-6' : 'bg-gray-300'
                         }`}
-                        aria-label={`Go to image ${index + 1}`}
+                        aria-label={t(`Go to image ${index + 1}`, `查看第 ${index + 1} 张`)}
                       />
                     ))}
                   </div>
@@ -395,7 +397,7 @@ export default function ProductDetail() {
             <button
               onClick={() => setImagePreviewOpen(false)}
               className="absolute -top-3 -right-3 z-20 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-              aria-label="Close preview"
+              aria-label={t('Close preview', '关闭预览')}
             >
               <X className="w-5 h-5 text-black" />
             </button>
@@ -420,7 +422,7 @@ export default function ProductDetail() {
                         );
                       }}
                       className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
-                      aria-label="Previous image"
+                      aria-label={t('Previous image', '上一张')}
                     >
                       <ChevronLeft className="w-7 h-7 text-black" />
                     </button>
@@ -432,7 +434,7 @@ export default function ProductDetail() {
                         );
                       }}
                       className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
-                      aria-label="Next image"
+                      aria-label={t('Next image', '下一张')}
                     >
                       <ChevronRight className="w-7 h-7 text-black" />
                     </button>
@@ -449,7 +451,7 @@ export default function ProductDetail() {
                           className={`w-2 h-2 rounded-full transition-all ${
                             index === previewImageIndex ? 'bg-white w-6' : 'bg-white/50'
                           }`}
-                          aria-label={`Go to image ${index + 1}`}
+                          aria-label={t(`Go to image ${index + 1}`, `查看第 ${index + 1} 张`)}
                         />
                       ))}
                     </div>

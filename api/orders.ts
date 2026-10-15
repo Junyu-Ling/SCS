@@ -1,5 +1,6 @@
 import { CATALOG_BY_ID } from '../src/app/data/catalog.js';
 import { readBody } from './_lib/http.js';
+import { requestLang, tr } from './_lib/lang.js';
 import { authConfigured, getVerifiedEmail } from './_lib/auth.js';
 import { fail, methodNotAllowed, rateLimitIp } from './_lib/guards.js';
 import { sendOrderEmails } from './_lib/orderMail.js';
@@ -35,8 +36,9 @@ export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store');
 
   try {
+    const lang = requestLang(req);
     if (!authConfigured()) {
-      res.status(503).json({ error: 'Server auth is not configured / 服务端未配置 AUTH_SECRET' });
+      res.status(503).json({ error: tr(lang, 'Server auth is not configured', '服务端未配置 AUTH_SECRET') });
       return;
     }
     if (!['POST', 'GET', 'PATCH', 'DELETE'].includes(req.method)) {
@@ -47,7 +49,7 @@ export default async function handler(req: any, res: any) {
     const body = req.method === 'GET' ? {} : readBody(req);
     const email = getVerifiedEmail(req, body);
     if (!email) {
-      res.status(401).json({ error: 'Email verification required / 请先验证邮箱' });
+      res.status(401).json({ error: tr(lang, 'Email verification required', '请先验证邮箱') });
       return;
     }
 
@@ -68,11 +70,11 @@ export default async function handler(req: any, res: any) {
       if (!(await rateLimitIp(req, res, 'orders-patch', 30, 600))) return;
       const order = typeof body?.orderId === 'string' ? await getOrder(body.orderId) : null;
       if (!order || order.userEmail !== email) {
-        res.status(404).json({ error: 'Order not found / 订单不存在' });
+        res.status(404).json({ error: tr(lang, 'Order not found', '订单不存在') });
         return;
       }
       if (body?.status !== 'cancelled' || order.status !== 'pending') {
-        res.status(400).json({ error: 'Only pending orders can be cancelled / 只能取消未完成的订单' });
+        res.status(400).json({ error: tr(lang, 'Only pending orders can be cancelled', '只能取消未完成的订单') });
         return;
       }
       const updated: Order = { ...order, status: 'cancelled', completed: false, updatedAt: new Date().toISOString() };
@@ -88,13 +90,13 @@ export default async function handler(req: any, res: any) {
     const className = clean(body?.contactInfo?.class_name, 50);
     const note = clean(body?.contactInfo?.note, 500);
     if (!realName || !className) {
-      res.status(400).json({ error: 'Real name and class are required / 请填写姓名和班级' });
+      res.status(400).json({ error: tr(lang, 'Real name and class are required', '请填写姓名和班级') });
       return;
     }
 
     const lines = Array.isArray(body?.items) ? body.items : [];
     if (lines.length === 0 || lines.length > MAX_LINES) {
-      res.status(400).json({ error: 'Invalid items / 商品列表无效' });
+      res.status(400).json({ error: tr(lang, 'Invalid items', '商品列表无效') });
       return;
     }
 
@@ -105,18 +107,18 @@ export default async function handler(req: any, res: any) {
       const entry = CATALOG_BY_ID[id];
       const quantity = Number(line?.quantity);
       if (!entry || !Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QTY) {
-        res.status(400).json({ error: 'Invalid item / 商品或数量无效' });
+        res.status(400).json({ error: tr(lang, 'Invalid item', '商品或数量无效') });
         return;
       }
       if (!mergeState(entry, states[id]).available) {
-        res.status(409).json({ error: `Sold out: ${entry.name.en} / 已售罄：${entry.name.cn}` });
+        res.status(409).json({ error: tr(lang, `Sold out: ${entry.name.en}`, `已售罄：${entry.name.cn}`) });
         return;
       }
       let option = '';
       if (entry.options) {
         option = clean(line?.option, 40);
         if (!(option in entry.options)) {
-          res.status(400).json({ error: `Please choose an option for ${entry.name.en} / 请选择${entry.name.cn}的规格` });
+          res.status(400).json({ error: tr(lang, `Please choose an option for ${entry.name.en}`, `请选择${entry.name.cn}的规格`) });
           return;
         }
       }
@@ -125,7 +127,7 @@ export default async function handler(req: any, res: any) {
       if (existing) {
         existing.quantity += quantity;
         if (existing.quantity > MAX_QTY) {
-          res.status(400).json({ error: 'Quantity too large / 数量过多' });
+          res.status(400).json({ error: tr(lang, 'Quantity too large', '数量过多') });
           return;
         }
       } else {
@@ -167,7 +169,7 @@ export default async function handler(req: any, res: any) {
       items: items.map((item) => {
         const kind = CATALOG_BY_ID[item.commodityId]?.optionKind;
         return {
-          name: item.name,
+          name: lang === 'cn' ? item.nameCn || item.name : item.name,
           color: kind === 'color' ? item.option : null,
           size: kind === 'size' ? item.option : null,
           quantity: item.quantity,
@@ -175,10 +177,10 @@ export default async function handler(req: any, res: any) {
         };
       }),
       total,
-    });
+    }, lang);
 
     res.status(200).json({ success: true, orderId: order.id, orderNumber, total });
   } catch (error) {
-    fail(res, 'orders', error);
+    fail(res, 'orders', error, req);
   }
 }

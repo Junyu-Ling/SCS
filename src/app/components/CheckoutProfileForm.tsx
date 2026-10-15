@@ -31,9 +31,16 @@ type CheckoutProfileFormProps = {
 const RESEND_SECONDS = 60;
 
 async function postJson(path: string, body: unknown) {
+  const lang = (() => {
+    try {
+      return localStorage.getItem('lang') === 'cn' ? 'cn' : 'en';
+    } catch {
+      return 'en';
+    }
+  })();
   const res = await fetch(path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Lang': lang },
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));

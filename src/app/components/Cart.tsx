@@ -1,6 +1,6 @@
 import { X, Trash2, ChevronRight, ChevronLeft, ShoppingBag, Loader2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useCart } from '../contexts/CartContext';
+import { cartItemLabel, useCart } from '../contexts/CartContext';
 import {
   isCheckoutProfileComplete,
   useCheckoutProfile,
@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 
 export default function Cart() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     cartItems,
     isCartOpen,
@@ -98,7 +98,7 @@ export default function Cart() {
                 <button
                   onClick={() => setCheckoutStep(false)}
                   className="p-2 hover:bg-accent rounded-full transition-colors touch-manipulation"
-                  aria-label="Back"
+                  aria-label={t('Back', '返回')}
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -119,7 +119,7 @@ export default function Cart() {
             <button
               onClick={() => setIsCartOpen(false)}
               className="p-2 hover:bg-accent rounded-full transition-colors touch-manipulation"
-              aria-label="Close cart"
+              aria-label={t('Close cart', '关闭购物车')}
             >
               <X className="w-5 h-5" />
             </button>
@@ -178,14 +178,14 @@ export default function Cart() {
                     <div className="w-16 h-16 flex-shrink-0 bg-muted rounded overflow-hidden">
                       <ImageWithFallback
                         src={item.image}
-                        alt={item.name}
+                        alt={cartItemLabel(item, language)}
                         className="w-full h-full object-contain"
                       />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-medium text-card-foreground line-clamp-2 mb-1">
-                        {item.name}
+                        {cartItemLabel(item, language)}
                       </h3>
                       <p className="text-xs text-muted-foreground mb-2">
                         {item.option && item.option !== 'Default' ? `${item.option} · ` : ''}×{item.quantity}
@@ -206,7 +206,7 @@ export default function Cart() {
                     <button
                       onClick={() => removeFromCart(item.id)}
                       className="p-2 hover:bg-destructive/10 rounded-full transition-colors touch-manipulation self-start"
-                      aria-label="Remove item"
+                      aria-label={t('Remove item', '移除商品')}
                     >
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </button>

@@ -1,4 +1,5 @@
 import { mailConfigured, sendMail } from './mail.js';
+import type { Lang } from './lang.js';
 import {
   adminNotifyRecipients,
   renderAdminOrderNotificationEmail,
@@ -19,7 +20,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // 下单后发送：学生确认邮件 + 管理员通知邮件（给每位管理员单独发一封）。
 // 永远不会抛异常——邮件失败不能影响订单本身。调用方可以 `await sendOrderEmails(order)`，
 // 在 Vercel 上需要 await（函数返回后进程会被冻结），否则邮件可能发不出去。
-export async function sendOrderEmails(order: MailOrder): Promise<OrderMailResult> {
+export async function sendOrderEmails(order: MailOrder, lang: Lang = 'en'): Promise<OrderMailResult> {
   const empty: OrderMailResult = { skipped: false, sent: 0, failed: 0, results: [] };
 
   try {
@@ -35,13 +36,13 @@ export async function sendOrderEmails(order: MailOrder): Promise<OrderMailResult
       jobs.push({
         kind: 'student',
         to: studentEmail,
-        run: () => sendMail({ to: studentEmail, ...renderOrderConfirmationEmail(order) }),
+        run: () => sendMail({ to: studentEmail, ...renderOrderConfirmationEmail(order, lang) }),
       });
     } else {
       console.warn(`[order-mail] order ${String(order?.id)} has no valid buyer email, skipping student confirmation`);
     }
 
-    const adminMail = renderAdminOrderNotificationEmail(order);
+    const adminMail = renderAdminOrderNotificationEmail(order, lang);
     for (const to of adminNotifyRecipients()) {
       jobs.push({ kind: 'admin', to, run: () => sendMail({ to, ...adminMail }) });
     }

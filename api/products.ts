@@ -3,6 +3,7 @@ import { readBody } from './_lib/http.js';
 import { requireAdmin } from './_lib/auth.js';
 import { command } from './_lib/redis.js';
 import { fail, methodNotAllowed, rateLimitIp } from './_lib/guards.js';
+import { requestLang, tr } from './_lib/lang.js';
 import { K_PRODUCT_STATE, getMergedProducts, mergeState, parseJson, type ProductState } from './_lib/shop.js';
 
 // 商品运行时状态（售罄开关 / 库存）。价格、名称、分类不在这里——它们只在 src/app/data/catalog.ts。
@@ -29,7 +30,7 @@ export default async function handler(req: any, res: any) {
       const id = Number(body?.id);
       const entry = CATALOG_BY_ID[id];
       if (!Number.isInteger(id) || !entry) {
-        res.status(404).json({ error: 'Unknown product / 商品不存在' });
+        res.status(404).json({ error: tr(requestLang(req), 'Unknown product', '商品不存在') });
         return;
       }
 
@@ -38,7 +39,7 @@ export default async function handler(req: any, res: any) {
 
       if (body?.available !== undefined) {
         if (typeof body.available !== 'boolean') {
-          res.status(400).json({ error: 'available must be a boolean' });
+          res.status(400).json({ error: tr(requestLang(req), 'available must be a boolean', 'available 必须是布尔值') });
           return;
         }
         next.available = body.available;
@@ -47,14 +48,14 @@ export default async function handler(req: any, res: any) {
       if (body?.options !== undefined) {
         const incoming = body.options;
         if (!entry.options || typeof incoming !== 'object' || incoming === null || Array.isArray(incoming)) {
-          res.status(400).json({ error: 'This product has no options / 该商品没有可调整的选项' });
+          res.status(400).json({ error: tr(requestLang(req), 'This product has no options', '该商品没有可调整的选项') });
           return;
         }
         const options: Record<string, number> = { ...(current.options ?? {}) };
         for (const [key, value] of Object.entries(incoming as Record<string, unknown>)) {
           const qty = Number(value);
           if (!(key in entry.options) || !Number.isInteger(qty) || qty < 0 || qty > MAX_STOCK) {
-            res.status(400).json({ error: `Invalid option "${key}" / 选项或库存无效` });
+            res.status(400).json({ error: tr(requestLang(req), `Invalid option "${key}"`, '选项或库存无效') });
             return;
           }
           options[key] = qty;
@@ -69,6 +70,6 @@ export default async function handler(req: any, res: any) {
 
     methodNotAllowed(res, ['GET', 'PATCH']);
   } catch (error) {
-    fail(res, 'products', error);
+    fail(res, 'products', error, req);
   }
 }

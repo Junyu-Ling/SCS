@@ -33,8 +33,16 @@ export interface ApiOptions {
   signal?: AbortSignal;
 }
 
+function currentLang(): 'en' | 'cn' {
+  try {
+    return localStorage.getItem('lang') === 'cn' ? 'cn' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
 export async function api<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { 'X-Lang': currentLang() };
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   if (options.student) {
     const token = getStoredVerifyToken();

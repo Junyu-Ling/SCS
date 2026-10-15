@@ -16,7 +16,7 @@ export default function HomePage() {
       <div className="relative w-full h-[min(100vw,calc(100svh-5rem))]">
         <OptimizedImage
           src={bgImage}
-          alt="Campus Shop"
+          alt={t('Campus Shop', '宋校文创商品店')}
           priority={true}
           blurUp
           placeholderSrc={HERO_BLUR_PLACEHOLDER}

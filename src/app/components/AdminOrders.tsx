@@ -43,6 +43,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 interface OrderItem {
   id: number;
   name: string;
+  nameCn?: string;
   option?: string;
   quantity: number;
   price: number;
@@ -71,7 +72,10 @@ type OrderFilter = 'all' | 'pending' | 'completed' | 'cancelled';
 const statusOf = (order: Order): 'pending' | 'completed' | 'cancelled' =>
   order.status === 'cancelled' ? 'cancelled' : order.completed || order.status === 'completed' ? 'completed' : 'pending';
 
-const itemLabel = (item: OrderItem) => `${item.name}${item.option ? ` (${item.option})` : ''} x${item.quantity}`;
+const itemLabel = (item: OrderItem, language: 'en' | 'cn') => {
+  const name = language === 'cn' ? item.nameCn || item.name : item.name;
+  return `${name}${item.option ? ` (${item.option})` : ''} x${item.quantity}`;
+};
 
 export default function AdminOrders() {
   const { t, language } = useLanguage();
@@ -201,7 +205,7 @@ export default function AdminOrders() {
       [t('Name', '姓名')]: o.contactInfo?.real_name ?? '',
       [t('Class', '班级')]: o.contactInfo?.class_name ?? '',
       [t('Email', '邮箱')]: o.isOffline ? '' : o.userEmail,
-      [t('Items', '商品')]: o.items.map(itemLabel).join('; '),
+      [t('Items', '商品')]: o.items.map((item) => itemLabel(item, language)).join('; '),
       [t('Total', '总价')]: o.total,
       [t('Status', '状态')]: statusOf(o),
       [t('Note', '留言')]: o.contactInfo?.note ?? '',
@@ -493,7 +497,7 @@ export default function AdminOrders() {
                           <TableCell>
                             <div className="flex flex-col gap-0.5 text-sm">
                               {order.items.map((item, idx) => (
-                                <span key={idx}>{itemLabel(item)}</span>
+                                <span key={idx}>{itemLabel(item, language)}</span>
                               ))}
                             </div>
                           </TableCell>

@@ -18,6 +18,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem('lang', language);
+    document.documentElement.lang = language === 'cn' ? 'zh-CN' : 'en';
   }, [language]);
 
   const toggleLanguage = () => {

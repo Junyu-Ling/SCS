@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { requestLang, tr } from './lang.js';
 import { command } from './redis.js';
 
 // 无 Supabase 的身份体系（全部基于 AUTH_SECRET 的 HMAC-SHA256 签名，不依赖任何第三方服务）：
@@ -151,7 +152,7 @@ export async function getAdminSession(req: any): Promise<{ email: string } | nul
 /** 管理员接口入口：非 GET 请求还会校验 Origin（防 CSRF，叠加 SameSite=Lax） */
 export async function requireAdmin(req: any, res: any): Promise<{ email: string } | null> {
   if (!authConfigured()) {
-    res.status(503).json({ error: 'Server auth is not configured / 服务端未配置 AUTH_SECRET' });
+    res.status(503).json({ error: tr(requestLang(req), 'Server auth is not configured', '服务端未配置 AUTH_SECRET') });
     return null;
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -172,7 +173,7 @@ export async function requireAdmin(req: any, res: any): Promise<{ email: string 
   }
   const session = await getAdminSession(req);
   if (!session) {
-    res.status(401).json({ error: 'Admin sign-in required / 需要管理员登录' });
+    res.status(401).json({ error: tr(requestLang(req), 'Admin sign-in required', '需要管理员登录') });
     return null;
   }
   return session;

@@ -1,6 +1,7 @@
 import { EMAIL_RE, SCHOOL_EMAIL_RE, normalizeEmail, readBody } from './_lib/http.js';
 import { INITIAL_ADMIN_EMAILS, getDynamicAdmins, grantAdmin, requireAdmin, revokeAdmin } from './_lib/auth.js';
 import { fail, methodNotAllowed, rateLimitIp } from './_lib/guards.js';
+import { requestLang, tr } from './_lib/lang.js';
 
 // 管理员名单（需要管理员 Cookie）
 //   GET    /api/admin-users                 [{ email, initial }]
@@ -31,7 +32,7 @@ export default async function handler(req: any, res: any) {
 
     const email = normalizeEmail(readBody(req)?.email);
     if (!EMAIL_RE.test(email) || !SCHOOL_EMAIL_RE.test(email)) {
-      res.status(400).json({ error: 'Please enter a school email / 请输入学校邮箱' });
+      res.status(400).json({ error: tr(requestLang(req), 'Please enter a school email', '请输入学校邮箱') });
       return;
     }
 
@@ -42,12 +43,12 @@ export default async function handler(req: any, res: any) {
     }
 
     if (INITIAL_ADMIN_EMAILS.includes(email)) {
-      res.status(400).json({ error: 'Initial admins cannot be revoked / 初始管理员不能被撤销' });
+      res.status(400).json({ error: tr(requestLang(req), 'Initial admins cannot be revoked', '初始管理员不能被撤销') });
       return;
     }
     await revokeAdmin(email);
     res.status(200).json({ ok: true });
   } catch (error) {
-    fail(res, 'admin-users', error);
+    fail(res, 'admin-users', error, req);
   }
 }

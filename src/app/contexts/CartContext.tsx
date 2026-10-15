@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { api, ApiError } from '../../lib/api';
 import { useCheckoutProfile, type CheckoutProfile } from './CheckoutProfileContext';
+import { useLanguage } from './LanguageContext';
 import { getCatalogPrice } from '../data/catalog';
 
 /**
@@ -10,7 +11,9 @@ import { getCatalogPrice } from '../data/catalog';
 export interface CartItem {
   id: string;              // 购物车项 ID（前端生成）
   commodityId: number;     // 商品 ID
-  name: string;            // 商品名称（根据语言选择）
+  name: string;            // 加入购物车时的名称（旧数据兼容）
+  nameEn?: string;
+  nameCn?: string;
   price: number;           // 单价
   quantity: number;        // 数量
   option: string;          // 选项（如颜色、尺寸等）
@@ -49,7 +52,16 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
  * - 用户登录后自动加载购物车
  * - 购物车修改自动保存到 localStorage
  */
+export function cartItemLabel(
+  item: { name: string; nameEn?: string; nameCn?: string },
+  language: 'en' | 'cn',
+): string {
+  if (language === 'cn') return item.nameCn || item.name;
+  return item.nameEn || item.name;
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const { invalidateVerification } = useCheckoutProfile();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -101,11 +113,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         // 更新现有商品数量
         const updated = [...prev];
         updated[existingIndex].quantity += item.quantity;
-        toast.success('Item quantity updated in cart');
+        toast.success(t('Item quantity updated in cart', '购物车中的数量已更新'));
         return updated;
       } else {
         // 添加新商品
-        toast.success('Item added to cart');
+        toast.success(t('Item added to cart', '已加入购物车'));
         return [...prev, newItem];
       }
     });
@@ -121,7 +133,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       newSet.delete(id);
       return newSet;
     });
-    toast.success('Item removed from cart');
+    toast.success(t('Item removed from cart', '已从购物车移除'));
   };
 
   /**
@@ -199,7 +211,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const submitOrder = async (contact: CheckoutProfile) => {
     const itemsToBuy = getSelectedItems();
     if (itemsToBuy.length === 0) {
-      toast.error('Please select items to checkout / 请选择要结算的商品');
+      toast.error(t('Please select items to checkout', '请选择要结算的商品'));
       return false;
     }
 
@@ -237,16 +249,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCartItems(prev => prev.filter(item => !selectedIds.has(item.id)));
       setSelectedIds(new Set());
       
-      toast.success('Reservation submitted successfully! / 预定提交成功！');
+      toast.success(t('Reservation submitted successfully!', '预定提交成功！'));
       return true;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         invalidateVerification();
-        toast.error('Email verification expired, please verify again / 邮箱验证已过期，请重新验证');
+        toast.error(t('Email verification expired, please verify again', '邮箱验证已过期，请重新验证'));
         return false;
       }
       console.error('[CART] Order submission failed:', error);
-      toast.error(`Order submission failed: ${error instanceof Error ? error.message : 'Unknown error'} / 订单提交失败`);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t('Order submission failed', '订单提交失败'),
+      );
       return false;
     }
   };

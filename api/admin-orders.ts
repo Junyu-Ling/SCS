@@ -2,6 +2,7 @@ import { CATALOG, CATALOG_BY_ID } from '../src/app/data/catalog.js';
 import { readBody } from './_lib/http.js';
 import { requireAdmin } from './_lib/auth.js';
 import { fail, methodNotAllowed, rateLimitIp } from './_lib/guards.js';
+import { requestLang, tr } from './_lib/lang.js';
 import {
   deleteOrders,
   getOrder,
@@ -116,11 +117,11 @@ export default async function handler(req: any, res: any) {
       const body = readBody(req);
       const order = typeof body?.orderId === 'string' ? await getOrder(body.orderId) : null;
       if (!order) {
-        res.status(404).json({ error: 'Order not found / 订单不存在' });
+        res.status(404).json({ error: tr(requestLang(req), 'Order not found', '订单不存在') });
         return;
       }
       if (!STATUSES.includes(body?.status)) {
-        res.status(400).json({ error: 'Invalid status / 状态无效' });
+        res.status(400).json({ error: tr(requestLang(req), 'Invalid status', '状态无效') });
         return;
       }
       const updated: Order = {
@@ -144,7 +145,7 @@ export default async function handler(req: any, res: any) {
       const quantity = Number(body?.quantity);
       const amount = Number(body?.amount);
       if (!name || !Number.isInteger(quantity) || quantity < 1 || quantity > 10000 || !(amount >= 0) || amount > 1_000_000) {
-        res.status(400).json({ error: 'Missing or invalid fields / 缺少或无效的字段' });
+        res.status(400).json({ error: tr(requestLang(req), 'Missing or invalid fields', '缺少或无效的字段') });
         return;
       }
       const unitPrice = round2(amount / quantity);
@@ -190,6 +191,6 @@ export default async function handler(req: any, res: any) {
     const deletedCount = await deleteOrders(targets);
     res.status(200).json({ success: true, deletedCount });
   } catch (error) {
-    fail(res, 'admin-orders', error);
+    fail(res, 'admin-orders', error, req);
   }
 }

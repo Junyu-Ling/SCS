@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { api } from '../../lib/api';
+import { useLanguage } from './LanguageContext';
 
 /**
  * 管理员会话（基于 /api/admin-session 的 HttpOnly 签名 Cookie）。
@@ -22,6 +23,7 @@ interface ProfileContextType {
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
+  const { t } = useLanguage();
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileVersion, setProfileVersion] = useState(0);
@@ -50,8 +52,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
     setAdminEmail(null);
     window.location.hash = '/';
-    toast.success('已成功登出 / Signed out');
-  }, []);
+    toast.success(t('Signed out', '已成功登出'));
+  }, [t]);
 
   const isAdmin = adminEmail !== null;
 

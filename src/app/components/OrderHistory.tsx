@@ -22,7 +22,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 
-import { CartItem } from '../contexts/CartContext';
+import { cartItemLabel, type CartItem } from '../contexts/CartContext';
 
 interface Order {
   id: string;
@@ -79,9 +79,9 @@ export default function OrderHistory() {
       );
     } catch (err) {
       if (handleAuthError(err)) {
-        setError('Email verification expired, please verify again / 邮箱验证已过期，请重新验证');
+        setError(t('Email verification expired, please verify again', '邮箱验证已过期，请重新验证'));
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to load orders / 加载订单失败');
+        setError(err instanceof Error ? err.message : t('Failed to load orders', '加载订单失败'));
       }
       setOrders([]);
     } finally {
@@ -113,7 +113,7 @@ export default function OrderHistory() {
       void loadOrders();
     } catch (err) {
       if (handleAuthError(err)) return;
-      toast.error(err instanceof Error ? err.message : 'Failed to clear completed orders / 清空订单失败');
+      toast.error(err instanceof Error ? err.message : t('Failed to clear completed orders', '清空订单失败'));
     }
   };
 
@@ -125,7 +125,7 @@ export default function OrderHistory() {
       void loadOrders();
     } catch (err) {
       if (handleAuthError(err)) return;
-      toast.error(err instanceof Error ? err.message : 'Failed to cancel order / 取消订单失败');
+      toast.error(err instanceof Error ? err.message : t('Failed to cancel order', '取消订单失败'));
     }
   };
 
@@ -260,7 +260,7 @@ export default function OrderHistory() {
                   <div className="py-2">
                       {order.items.map((item, idx) => (
                         <div key={idx} className="flex justify-between text-sm py-0.5">
-                          <span>{item.name} {item.option && item.option !== 'Default' && <span className="text-gray-400 text-xs">({item.option})</span>}</span>
+                          <span>{cartItemLabel(item, language)} {item.option && item.option !== 'Default' && <span className="text-gray-400 text-xs">({item.option})</span>}</span>
                           <span className="font-medium text-gray-600">x{item.quantity}</span>
                         </div>
                       ))}
@@ -340,7 +340,7 @@ export default function OrderHistory() {
                         <div className="flex flex-col gap-1">
                           {order.items.map((item, idx) => (
                             <span key={idx} className="text-sm text-gray-700">
-                              {item.name} <span className="text-gray-400 text-xs">x{item.quantity}</span>
+                              {cartItemLabel(item, language)} <span className="text-gray-400 text-xs">x{item.quantity}</span>
                             </span>
                           ))}
                         </div>

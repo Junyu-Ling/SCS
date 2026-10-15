@@ -2,6 +2,7 @@ import { readBody } from './_lib/http.js';
 import { getAdminSession, requireAdmin } from './_lib/auth.js';
 import { command } from './_lib/redis.js';
 import { fail, methodNotAllowed, rateLimitIp } from './_lib/guards.js';
+import { requestLang, tr } from './_lib/lang.js';
 import { K_ABOUT, parseJson } from './_lib/shop.js';
 
 // About Us 页面内容
@@ -28,12 +29,12 @@ export default async function handler(req: any, res: any) {
 
       const content = readBody(req)?.content;
       if (!content || typeof content !== 'object' || Array.isArray(content)) {
-        res.status(400).json({ error: 'Content must be a JSON object / 内容必须是 JSON 对象' });
+        res.status(400).json({ error: tr(requestLang(req), 'Content must be a JSON object', '内容必须是 JSON 对象') });
         return;
       }
       const serialized = JSON.stringify(content);
       if (serialized.length > MAX_BYTES) {
-        res.status(413).json({ error: 'Content too large / 内容过大' });
+        res.status(413).json({ error: tr(requestLang(req), 'Content too large', '内容过大') });
         return;
       }
       await command('SET', K_ABOUT, serialized);
@@ -43,6 +44,6 @@ export default async function handler(req: any, res: any) {
 
     methodNotAllowed(res, ['GET', 'PUT']);
   } catch (error) {
-    fail(res, 'aboutus', error);
+    fail(res, 'aboutus', error, req);
   }
 }

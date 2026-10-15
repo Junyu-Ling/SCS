@@ -243,7 +243,7 @@ export default function Navbar() {
             variant="ghost"
             size="icon"
             onClick={toggleLanguage}
-            title={t('Switch to Chinese', 'Switch to English')}
+            title={t('Switch to Chinese', '切换到英文')}
             className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-white/10 text-white rounded-xl"
           >
             <Languages className="w-5 h-5 sm:w-6 sm:h-6" />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
@@ -236,10 +237,11 @@ function TextBlockEditor({
   onChange: (updated: AboutUsTextBlock) => void;
   onRemove: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500">Paragraph {index + 1}</span>
+        <span className="text-sm font-medium text-gray-500">{t('Paragraph', '段落')} {index + 1}</span>
         <Button variant="ghost" size="sm" onClick={onRemove}>
           <Trash2 className="w-4 h-4 text-red-500" />
         </Button>
@@ -248,11 +250,11 @@ function TextBlockEditor({
         value={block.text}
         onChange={(e) => onChange({ ...block, text: e.target.value })}
         className="min-h-[80px] text-sm"
-        placeholder="Enter text content..."
+        placeholder={t('Enter text content...', '输入文字内容...')}
       />
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <Label className="text-xs text-gray-500">Font Size</Label>
+          <Label className="text-xs text-gray-500">{t('Font Size', '字号')}</Label>
           <Select value={block.fontSize} onValueChange={(v) => onChange({ ...block, fontSize: v })}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue />
@@ -265,7 +267,7 @@ function TextBlockEditor({
           </Select>
         </div>
         <div>
-          <Label className="text-xs text-gray-500">Font Weight</Label>
+          <Label className="text-xs text-gray-500">{t('Font Weight', '字重')}</Label>
           <Select value={block.fontWeight} onValueChange={(v) => onChange({ ...block, fontWeight: v })}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue />
@@ -278,7 +280,7 @@ function TextBlockEditor({
           </Select>
         </div>
         <div>
-          <Label className="text-xs text-gray-500">Color</Label>
+          <Label className="text-xs text-gray-500">{t('Color', '颜色')}</Label>
           <Select value={block.color} onValueChange={(v) => onChange({ ...block, color: v })}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue />
@@ -293,9 +295,9 @@ function TextBlockEditor({
       </div>
       {/* Preview */}
       <div className="border-t pt-2">
-        <span className="text-xs text-gray-400">Preview:</span>
+        <span className="text-xs text-gray-400">{t('Preview', '预览')}</span>
         <p className={`${block.fontSize} ${block.fontWeight} ${block.color} mt-1 whitespace-pre-wrap break-words`}>
-          {block.text || '(empty)'}
+          {block.text || t('(empty)', '（空）')}
         </p>
       </div>
     </div>
@@ -314,7 +316,8 @@ function SectionEditor({
   onChange: (updated: AboutUsSection) => void;
   onRemove: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'en' | 'cn'>('en');
+  const { language, t } = useLanguage();
+  const activeTab = language;
 
   const updateParagraph = (lang: 'en' | 'cn', idx: number, block: AboutUsTextBlock) => {
     const key = lang === 'en' ? 'paragraphsEn' : 'paragraphsCn';
@@ -339,27 +342,24 @@ function SectionEditor({
   return (
     <div className="border border-gray-300 rounded-xl p-5 space-y-4 bg-white">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-lg">{section.titleEn} / {section.titleCn}</h3>
+        <h3 className="font-bold text-lg">{language === 'en' ? section.titleEn : section.titleCn}</h3>
         <Button variant="ghost" size="sm" onClick={onRemove}>
           <Trash2 className="w-4 h-4 text-red-500" />
-          <span className="ml-1 text-xs text-red-500">Delete Section</span>
+          <span className="ml-1 text-xs text-red-500">{t('Delete Section', '删除板块')}</span>
         </Button>
       </div>
 
-      {/* Title editing */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label className="text-xs">Title (English)</Label>
-          <Input value={section.titleEn} onChange={(e) => onChange({ ...section, titleEn: e.target.value })} className="h-8 text-sm" />
-        </div>
-        <div>
-          <Label className="text-xs">Title (中文)</Label>
-          <Input value={section.titleCn} onChange={(e) => onChange({ ...section, titleCn: e.target.value })} className="h-8 text-sm" />
-        </div>
+      <div>
+        <Label className="text-xs">{t('Title', '标题')}</Label>
+        <Input
+          value={language === 'en' ? section.titleEn : section.titleCn}
+          onChange={(e) => onChange(language === 'en' ? { ...section, titleEn: e.target.value } : { ...section, titleCn: e.target.value })}
+          className="h-8 text-sm"
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label className="text-xs">Title Size</Label>
+          <Label className="text-xs">{t('Title Size', '标题字号')}</Label>
             <Select value={section.titleSize} onValueChange={(v) => onChange({ ...section, titleSize: v })}>
             <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent className="max-h-64">
@@ -368,7 +368,7 @@ function SectionEditor({
           </Select>
         </div>
         <div>
-          <Label className="text-xs">Title Color</Label>
+          <Label className="text-xs">{t('Title Color', '标题颜色')}</Label>
           <Select value={section.titleColor} onValueChange={(v) => onChange({ ...section, titleColor: v })}>
             <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -378,23 +378,7 @@ function SectionEditor({
         </div>
       </div>
 
-      {/* Language tabs */}
-      <div className="flex gap-2 border-b pb-2">
-        <button
-          className={`px-3 py-1 text-sm rounded-t ${activeTab === 'en' ? 'bg-black text-white' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('en')}
-        >
-          English
-        </button>
-        <button
-          className={`px-3 py-1 text-sm rounded-t ${activeTab === 'cn' ? 'bg-black text-white' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('cn')}
-        >
-          中文
-        </button>
-      </div>
-
-      {/* Paragraphs */}
+      {/* Paragraphs for the current site language */}
       <div className="space-y-3">
         {paragraphs.map((block, idx) => (
           <TextBlockEditor
@@ -406,7 +390,7 @@ function SectionEditor({
           />
         ))}
         <Button variant="outline" size="sm" onClick={() => addParagraph(activeTab)} className="w-full">
-          <Plus className="w-4 h-4 mr-1" /> Add Paragraph
+          <Plus className="w-4 h-4 mr-1" /> {t('Add Paragraph', '添加段落')}
         </Button>
       </div>
     </div>
@@ -428,6 +412,7 @@ export default function AboutUsEditor({
   content: AboutUsContent;
   onSave: (content: AboutUsContent) => Promise<void>;
 }) {
+  const { language, t } = useLanguage();
   const [editContent, setEditContent] = useState<AboutUsContent>(content);
   const [saving, setSaving] = useState(false);
   const [activeArea, setActiveArea] = useState<'sections' | 'hero' | 'thankyou'>('sections');
@@ -444,10 +429,10 @@ export default function AboutUsEditor({
       const payload = sanitizeAboutUsContent(editContent);
       await onSave(payload);
       onOpenChange(false);
-      toast.success('About Us 已保存 / Saved successfully');
+      toast.success(t('About Us saved', '关于我们已保存'));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast.error('保存失败 / Save failed: ' + msg);
+      toast.error(t('Save failed', '保存失败') + ': ' + msg);
     } finally {
       setSaving(false);
     }
@@ -491,7 +476,7 @@ export default function AboutUsEditor({
       {blocks.map((block, idx) => (
         <div key={idx} className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">Block {idx + 1}</span>
+            <span className="text-xs text-gray-400">{t('Block', '文本块')} {idx + 1}</span>
             <Button variant="ghost" size="sm" onClick={() => onChange(blocks.filter((_, i) => i !== idx))}>
               <Trash2 className="w-3 h-3 text-red-400" />
             </Button>
@@ -503,7 +488,7 @@ export default function AboutUsEditor({
               updated[idx] = { ...block, text: e.target.value };
               onChange(updated);
             }}
-            placeholder="Text (use \n for line break)"
+            placeholder={t('Text (use \\n for a line break)', '文字（用 \\n 换行）')}
             className="h-7 text-xs"
           />
           <div className="grid grid-cols-3 gap-2">
@@ -535,7 +520,7 @@ export default function AboutUsEditor({
         </div>
       ))}
       <Button variant="outline" size="sm" className="w-full" onClick={() => onChange([...blocks, { text: '', fontSize: 'text-lg', fontWeight: 'font-normal', color: 'text-gray-700' }])}>
-        <Plus className="w-3 h-3 mr-1" /> Add Block
+        <Plus className="w-3 h-3 mr-1" /> {t('Add Block', '添加文本块')}
       </Button>
     </div>
   );
@@ -544,8 +529,8 @@ export default function AboutUsEditor({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit About Us Page</DialogTitle>
-          <DialogDescription>Modify the content and styling of each section on the About Us page.</DialogDescription>
+          <DialogTitle>{t('Edit About Us Page', '编辑关于我们')}</DialogTitle>
+          <DialogDescription>{t('Edit the current language. Switch the site language to edit the other version.', '正在编辑当前语言。切换网站语言后可编辑另一种语言。')}</DialogDescription>
         </DialogHeader>
 
         {/* Area selector */}
@@ -556,7 +541,7 @@ export default function AboutUsEditor({
               className={`px-4 py-2 text-sm rounded-lg border ${activeArea === area ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300'}`}
               onClick={() => setActiveArea(area)}
             >
-              {area === 'sections' ? 'Main Sections' : area === 'hero' ? 'Hero Banner' : 'Thank You'}
+              {area === 'sections' ? t('Main Sections', '主要内容') : area === 'hero' ? t('Hero Banner', '页头') : t('Thank You', '致谢')}
             </button>
           ))}
         </div>
@@ -572,48 +557,34 @@ export default function AboutUsEditor({
               />
             ))}
             <Button variant="outline" onClick={addSection} className="w-full">
-              <Plus className="w-4 h-4 mr-2" /> Add New Section
+              <Plus className="w-4 h-4 mr-2" /> {t('Add New Section', '添加新板块')}
             </Button>
           </div>
         )}
 
         {activeArea === 'hero' && (
-          <div className="space-y-6">
-            <InlineBlocksEditor
-              label="Hero - English"
-              blocks={editContent.heroEn}
-              onChange={(blocks) => setEditContent({ ...editContent, heroEn: blocks })}
-            />
-            <InlineBlocksEditor
-              label="Hero - 中文"
-              blocks={editContent.heroCn}
-              onChange={(blocks) => setEditContent({ ...editContent, heroCn: blocks })}
-            />
-          </div>
+          <InlineBlocksEditor
+            label={t('Hero', '页头')}
+            blocks={language === 'en' ? editContent.heroEn : editContent.heroCn}
+            onChange={(blocks) => setEditContent(language === 'en' ? { ...editContent, heroEn: blocks } : { ...editContent, heroCn: blocks })}
+          />
         )}
 
         {activeArea === 'thankyou' && (
-          <div className="space-y-6">
-            <InlineBlocksEditor
-              label="Thank You - English"
-              blocks={editContent.thankYouEn}
-              onChange={(blocks) => setEditContent({ ...editContent, thankYouEn: blocks })}
-            />
-            <InlineBlocksEditor
-              label="Thank You - 中文"
-              blocks={editContent.thankYouCn}
-              onChange={(blocks) => setEditContent({ ...editContent, thankYouCn: blocks })}
-            />
-          </div>
+          <InlineBlocksEditor
+            label={t('Thank You', '致谢')}
+            blocks={language === 'en' ? editContent.thankYouEn : editContent.thankYouCn}
+            onChange={(blocks) => setEditContent(language === 'en' ? { ...editContent, thankYouEn: blocks } : { ...editContent, thankYouCn: blocks })}
+          />
         )}
 
         {/* Save/Cancel */}
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            <X className="w-4 h-4 mr-1" /> Cancel
+            <X className="w-4 h-4 mr-1" /> {t('Cancel', '取消')}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
-            <Save className="w-4 h-4 mr-1" /> {saving ? 'Saving...' : 'Save Changes'}
+            <Save className="w-4 h-4 mr-1" /> {saving ? t('Saving...', '保存中...') : t('Save Changes', '保存修改')}
           </Button>
         </div>
       </DialogContent>
