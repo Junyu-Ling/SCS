@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
       title={t('Privacy Policy', '隐私政策')}
       metaLines={[
         t('Last Updated: 2024/09/25', '最后更新：2024/09/25'),
-        t('Person(s) in Charge: Qixin Zhu', '负责人：Qixin Zhu'),
+        t('Person(s) in Charge: Junyu Ling', '负责人：Junyu Ling'),
       ]}
       notice={t(
         'Notice: This website may be available in multiple languages; however, the English version is the authoritative reference. In case of any discrepancies between language versions, the English version shall prevail.',
