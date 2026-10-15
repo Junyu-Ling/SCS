@@ -381,23 +381,23 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* 🖼️ 图片预览对话框 */}
+      {/* 🖼️ 图片预览对话框：仅放大层缩小，原图展示尺寸不变 */}
       <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
-        <DialogContent className="max-w-[80vw] sm:max-w-2xl w-full p-0 bg-black border-none">
+        <DialogContent className="w-[min(560px,60vw)] max-w-[560px] sm:max-w-[560px] max-h-[60vh] p-0 bg-transparent border-none shadow-none overflow-visible [&>button]:hidden">
           <DialogTitle className="sr-only">
             {t('Image Preview', '图片预览')}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {t('Full size image preview', '全尺寸图片预览')}
+            {t('Image preview', '图片预览')}
           </DialogDescription>
-          <div className="relative aspect-square w-full max-h-[75vh] bg-black">
+          <div className="relative flex items-center justify-center w-full max-h-[60vh]">
             {/* 关闭按钮 */}
             <button
               onClick={() => setImagePreviewOpen(false)}
-              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
+              className="absolute -top-3 -right-3 z-20 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
               aria-label="Close preview"
             >
-              <X className="w-6 h-6 text-black" />
+              <X className="w-5 h-5 text-black" />
             </button>
 
             {/* 图片 */}
@@ -406,7 +406,7 @@ export default function ProductDetail() {
                 <img
                   src={effectiveImages[previewImageIndex]}
                   alt={`${language === 'en' ? productData.name.en : productData.name.cn} - ${previewImageIndex + 1}`}
-                  className="w-full h-full max-h-[75vh] object-contain"
+                  className="max-w-full max-h-[60vh] w-auto h-auto object-contain"
                 />
 
                 {/* 导航按钮 - 只在多图时显示 */}
