@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { User } from 'lucide-react';
 import { toast } from 'sonner';
-import { ADMIN_EMAILS } from '../contexts/ProfileContext';
 import {
   isCheckoutProfileComplete,
   useCheckoutProfile,
@@ -45,8 +44,6 @@ export default function CheckoutProfileDialog({
     onOpenChange(false);
   };
 
-  const isAdminEmail = ADMIN_EMAILS.includes(draft.email.trim().toLowerCase());
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md rounded-xl">
@@ -69,18 +66,16 @@ export default function CheckoutProfileDialog({
           {t('Save', '保存')}
         </Button>
 
-        {isAdminEmail ? (
-          <button
-            type="button"
-            className="text-xs text-[#4A5E55] hover:text-[#174D3D] transition-colors"
-            onClick={() => {
-              onOpenChange(false);
-              window.location.hash = '/login';
-            }}
-          >
-            {t('Admin sign in', '管理员登录')}
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="text-xs text-[#4A5E55] hover:text-[#174D3D] transition-colors"
+          onClick={() => {
+            onOpenChange(false);
+            window.location.hash = '/login';
+          }}
+        >
+          {t('Admin sign in', '管理员登录')}
+        </button>
       </DialogContent>
     </Dialog>
   );

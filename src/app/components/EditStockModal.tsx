@@ -6,10 +6,9 @@ import { Label } from './ui/label';
 import { Product } from '../hooks/useProducts';
 import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
-import { clearProductsCache, updateProductInCache } from '../hooks/useProducts';
+import { applyProductState } from '../hooks/useProducts';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { api } from '../../lib/api';
 
 interface EditStockModalProps {
   product: Product | null;
@@ -66,46 +65,15 @@ export function EditStockModal({ product, isOpen, onClose, onUpdate }: EditStock
 
     setLoading(true);
     try {
-      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !freshSession?.access_token) {
-        toast.error(t('Session expired — please log in again', '会话已过期，请重新登录'));
-        return;
-      }
-
-      const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-c4f5ade4`;
-      const response = await fetch(`${API_BASE}/admin/products/${product.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`,
-        },
-        body: JSON.stringify({
-          options: stockData,
-          _auth_token: freshSession.access_token
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update stock');
-      }
-
-      const data = await response.json();
+      // 只提交这个商品真正有的选项；价格不在这里改（只在代码里）
+      const options = Object.fromEntries(
+        Object.keys(product.options ?? {}).map((key) => [key, Math.max(0, Math.floor(Number(stockData[key]) || 0))]),
+      );
+      await api('/api/products', { method: 'PATCH', body: { id: product.id, options } });
 
       toast.success(t('Stock updated successfully', '库存更新成功'));
-
-      const updated = data.product as Product | undefined;
-      if (updated) {
-        const normalized: Product = {
-          ...updated,
-          price: typeof updated.price === 'string' ? parseFloat(updated.price) : Number(updated.price),
-        };
-        updateProductInCache(normalized);
-        clearProductsCache();
-        onUpdate(normalized);
-      } else {
-        clearProductsCache();
-        onUpdate();
-      }
+      applyProductState(product.id, { options });
+      onUpdate({ ...product, options });
 
       onClose();
     } catch (error) {

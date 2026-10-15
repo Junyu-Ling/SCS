@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { TrendingUp, DollarSign, Package, ShoppingBag, Users, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { api } from '../../lib/api';
 
 interface SalesData {
   totalRevenue: number;
@@ -21,36 +21,24 @@ interface SalesData {
 
 export default function SalesStatistics() {
   const { t, language } = useLanguage();
-  const { user, isAdmin } = useProfile();
+  const { user, isAdmin, loading: sessionLoading } = useProfile();
   const [salesData, setSalesData] = useState<SalesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
   useEffect(() => {
+    if (sessionLoading) return;
     if (!user || !isAdmin) {
-      window.location.href = '#/';
+      window.location.href = '#/login';
       return;
     }
     fetchSalesData();
-  }, [user, isAdmin, timeRange]);
+  }, [user, isAdmin, sessionLoading, timeRange]);
 
   const fetchSalesData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-c4f5ade4/sales-statistics?range=${timeRange}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch sales data');
-      }
-
-      const data = await response.json();
+      const data = await api<SalesData>(`/api/admin-orders?stats=${timeRange}`);
       setSalesData(data);
     } catch (error) {
       console.error('Error fetching sales data:', error);

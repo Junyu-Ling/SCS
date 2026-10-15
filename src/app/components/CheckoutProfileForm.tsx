@@ -36,7 +36,7 @@ async function postJson(path: string, body: unknown) {
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
-  return { ok: res.ok, data } as { ok: boolean; data: { error?: string; devCode?: string } };
+  return { ok: res.ok, data } as { ok: boolean; data: { error?: string; devCode?: string; verifyToken?: string } };
 }
 
 export default function CheckoutProfileForm({
@@ -116,8 +116,13 @@ export default function CheckoutProfileForm({
         toast.error(data.error || t('Verification failed', '验证失败'));
         return;
       }
-      bindVerifiedEmail({ ...value, email: emailValue.trim() });
-      onChange({ ...value, email: emailValue.trim().toLowerCase(), emailVerified: true });
+      const verifyToken = data.verifyToken ?? '';
+      if (!verifyToken) {
+        toast.error(t('Verification failed', '验证失败'));
+        return;
+      }
+      bindVerifiedEmail({ ...value, email: emailValue.trim() }, verifyToken);
+      onChange({ ...value, email: emailValue.trim().toLowerCase(), emailVerified: true, verifyToken });
       setCodeSent(false);
       setCode('');
       toast.success(t('Email verified and bound to this device', '邮箱已验证，并绑定到这台设备'));

@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { callEdgeFunction } from '../../lib/supabaseClient';
+import { api } from '../../lib/api';
+import { useProfile } from '../contexts/ProfileContext';
+import { Pencil } from 'lucide-react';
 import { OptimizedImage } from './OptimizedImage';
 import heroImage from 'figma:asset/category-about-us.jpg';
-import {
+import AboutUsEditor, {
   DEFAULT_ABOUT_US_CONTENT,
   type AboutUsContent,
   type AboutUsTextBlock,
@@ -292,10 +294,18 @@ function migrateLegacyContent(rawContent: AboutUsContent): AboutUsContent {
 export default function AboutUsPage() {
   const { language, t } = useLanguage();
   const [content, setContent] = useState<AboutUsContent>(DEFAULT_ABOUT_US_CONTENT);
+  const { canEditAboutUs } = useProfile();
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  // 管理员保存 About Us：服务端校验管理员 Cookie 后写入 Redis
+  const saveContent = useCallback(async (next: AboutUsContent) => {
+    await api('/api/aboutus', { method: 'PUT', body: { content: next } });
+    setContent(next);
+  }, []);
 
   const fetchContent = useCallback(async () => {
     try {
-      const res = await callEdgeFunction('/aboutus-content', { method: 'GET', requireAuth: false });
+      const res = await api<{ content?: AboutUsContent | null }>('/api/aboutus');
       if (res?.content) {
         setContent(migrateLegacyContent(res.content));
       }
@@ -315,6 +325,19 @@ export default function AboutUsPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
+      {canEditAboutUs ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setEditorOpen(true)}
+            className="fixed bottom-20 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-[#174D3D] px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-[#123d31]"
+          >
+            <Pencil className="h-4 w-4" />
+            {t('Edit page', '编辑页面')}
+          </button>
+          <AboutUsEditor open={editorOpen} onOpenChange={setEditorOpen} content={content} onSave={saveContent} />
+        </>
+      ) : null}
       {/* Hero：深绿底 + 大标题 + 右侧照片 */}
       <section className={`relative overflow-hidden bg-[#174D3D] ${gutter} py-16 sm:py-20 lg:py-28`}>
         <div className="pointer-events-none absolute -right-40 -top-40 h-[30rem] w-[30rem] rounded-full border border-white/10" />

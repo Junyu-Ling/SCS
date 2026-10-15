@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Search, ShoppingCart, Languages, User, LogOut, Package, Shield, X, MessageSquare } from 'lucide-react';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { Search, ShoppingCart, Languages, User, LogOut, Package, Shield, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
@@ -22,19 +22,14 @@ export default function Navbar() {
   // Stable hook order: contexts, states, refs, effects
   const { language, toggleLanguage, t } = useLanguage();
   const { setIsCartOpen, cartItems } = useCart();
-  const { user, profile, signOut, isAdmin, profileVersion } = useProfile();
+  const { user, signOut, isAdmin } = useProfile();
   const [searchValue, setSearchValue] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { products } = useProducts();
 
-  // 监听 profile 变化，更新头像
-  useEffect(() => {
-    setAvatarUrl(profile?.avatar_url || null);
-  }, [profile?.avatar_url, profileVersion]);
 
   // 点击外部关闭搜索结果
   useEffect(() => {
@@ -186,9 +181,8 @@ export default function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-white/10 text-white rounded-xl">
                   <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                    <AvatarImage src={avatarUrl || undefined} />
                     <AvatarFallback className="bg-white text-[#174D3D] text-xs">
-                      {profile?.real_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
+                      {user.email?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -196,7 +190,7 @@ export default function Navbar() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{profile?.real_name}</p>
+                    <p className="text-sm font-medium leading-none">{t('Admin', '管理员')}</p>
                     <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
@@ -204,10 +198,6 @@ export default function Navbar() {
                 <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
                   <User className="mr-2 h-4 w-4" />
                   <span>{t('Checkout details', '下单信息')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.location.hash = '/chat'}>
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  <span>{t('Contact Us', '联系我们')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => window.location.hash = '/admin'}>
                   <Shield className="mr-2 h-4 w-4" />

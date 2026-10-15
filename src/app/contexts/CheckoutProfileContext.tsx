@@ -15,6 +15,8 @@ export interface CheckoutProfile {
   email: string;
   /** 邮箱已通过验证码验证；一旦为 true，这台设备上的邮箱就被绑定，不能再修改 */
   emailVerified: boolean;
+  /** 服务端签发的"邮箱已验证"令牌（30 天），下单 / 查看订单时作为身份凭证；见 api/verify-code.ts */
+  verifyToken: string;
   realName: string;
   className: string;
   note: string;
@@ -23,6 +25,7 @@ export interface CheckoutProfile {
 const EMPTY_PROFILE: CheckoutProfile = {
   email: '',
   emailVerified: false,
+  verifyToken: '',
   realName: '',
   className: '',
   note: '',
@@ -32,7 +35,9 @@ interface CheckoutProfileContextType {
   checkoutProfile: CheckoutProfile;
   saveCheckoutProfile: (profile: CheckoutProfile) => void;
   /** 验证码校验通过后调用：保存当前填写内容，并把邮箱绑定在这台设备上 */
-  bindVerifiedEmail: (profile: CheckoutProfile) => void;
+  bindVerifiedEmail: (profile: CheckoutProfile, verifyToken: string) => void;
+  /** 服务端说令牌失效（过期 / 密钥变更）时调用：解除绑定，让用户重新验证 */
+  invalidateVerification: () => void;
   isCheckoutProfileComplete: (profile?: CheckoutProfile) => boolean;
 }
 
@@ -47,12 +52,16 @@ function readStoredProfile(): CheckoutProfile {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return EMPTY_PROFILE;
     const parsed = JSON.parse(raw) as Partial<CheckoutProfile>;
+    const verifyToken = typeof parsed.verifyToken === 'string' ? parsed.verifyToken : '';
     return {
       email: typeof parsed.email === 'string' ? parsed.email : '',
+      // 没有服务端令牌的旧"已验证"记录不再算数，需要重新验证一次
       emailVerified:
         parsed.emailVerified === true &&
+        verifyToken !== '' &&
         typeof parsed.email === 'string' &&
         SCHOOL_EMAIL_RE.test(parsed.email.trim().toLowerCase()),
+      verifyToken: parsed.emailVerified === true ? verifyToken : '',
       realName: typeof parsed.realName === 'string' ? parsed.realName : '',
       className: typeof parsed.className === 'string' ? parsed.className : '',
       note: typeof parsed.note === 'string' ? parsed.note : '',
@@ -93,20 +102,27 @@ export function CheckoutProfileProvider({ children }: { children: ReactNode }) {
     persist({
       email: locked ? stored.email : profile.email.trim().toLowerCase(),
       emailVerified: locked,
+      verifyToken: locked ? stored.verifyToken : '',
       realName: profile.realName.trim(),
       className: profile.className.trim(),
       note: profile.note.trim(),
     });
   }, [persist]);
 
-  const bindVerifiedEmail = useCallback((profile: CheckoutProfile) => {
+  const bindVerifiedEmail = useCallback((profile: CheckoutProfile, verifyToken: string) => {
     persist({
       email: profile.email.trim().toLowerCase(),
       emailVerified: true,
+      verifyToken,
       realName: profile.realName.trim(),
       className: profile.className.trim(),
       note: profile.note.trim(),
     });
+  }, [persist]);
+
+  const invalidateVerification = useCallback(() => {
+    const stored = readStoredProfile();
+    persist({ ...stored, emailVerified: false, verifyToken: '' });
   }, [persist]);
 
   return (
@@ -115,6 +131,7 @@ export function CheckoutProfileProvider({ children }: { children: ReactNode }) {
         checkoutProfile,
         saveCheckoutProfile,
         bindVerifiedEmail,
+        invalidateVerification,
         isCheckoutProfileComplete: (profile?: CheckoutProfile) =>
           profileIsComplete(profile ?? checkoutProfile),
       }}

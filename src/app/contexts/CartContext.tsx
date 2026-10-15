@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
-import type { CheckoutProfile } from './CheckoutProfileContext';
+import { api, ApiError } from '../../lib/api';
+import { useCheckoutProfile, type CheckoutProfile } from './CheckoutProfileContext';
 import { getCatalogPrice } from '../data/catalog';
 
 /**
@@ -50,6 +50,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
  * - 购物车修改自动保存到 localStorage
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { invalidateVerification } = useCheckoutProfile();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -203,48 +204,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const total = getTotalPrice();
-      const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-c4f5ade4`;
-      const response = await fetch(`${API_BASE}/orders`, {
+      // 服务端会按代码里的价格表重新计算价格；这里只发送商品 ID / 选项 / 数量
+      const result = await api<{ orderNumber: string; total: number }>('/api/orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`,
-        },
-        body: JSON.stringify({
-          items: itemsToBuy,
-          total,
+        student: true,
+        body: {
+          items: itemsToBuy.map((item) => ({
+            commodityId: item.commodityId,
+            option: item.option === 'Default' ? '' : item.option,
+            quantity: item.quantity,
+          })),
           contactInfo: {
             real_name: contact.realName,
             class_name: contact.className,
             note: contact.note,
-            email: contact.email,
           },
-        }),
+        },
       });
-
-      console.log('[CART] Response received!');
-      console.log('[CART] Response status:', response.status);
-      console.log('[CART] Response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[CART] Error response text:', errorText);
-        
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          errorData = { error: errorText };
-        }
-        
-        console.error('[CART] Order submission failed:', response.status, errorData);
-        
-        toast.error(`Order submission failed: ${errorData.error || errorData.message || 'Unknown error'} / 订单提交失败`);
-        return false;
-      }
-
-      const result = await response.json();
+      const total = result.total;
       try {
         const history = JSON.parse(localStorage.getItem('scls_local_orders') || '[]');
         history.unshift({
@@ -263,9 +240,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       toast.success('Reservation submitted successfully! / 预定提交成功！');
       return true;
     } catch (error) {
-      console.error('[CART] Order submission exception:', error);
-      console.error('[CART] Exception message:', error instanceof Error ? error.message : String(error));
-      toast.error(`Order submission error: ${error instanceof Error ? error.message : 'Unknown error'} / 订单提交错误`);
+      if (error instanceof ApiError && error.status === 401) {
+        invalidateVerification();
+        toast.error('Email verification expired, please verify again / 邮箱验证已过期，请重新验证');
+        return false;
+      }
+      console.error('[CART] Order submission failed:', error);
+      toast.error(`Order submission failed: ${error instanceof Error ? error.message : 'Unknown error'} / 订单提交失败`);
       return false;
     }
   };

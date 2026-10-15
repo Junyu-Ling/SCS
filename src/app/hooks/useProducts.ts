@@ -1,13 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { useState, useEffect } from 'react';
 import { getProductImages, isValidImageUrl } from '../data/product-images';
 import { products as localProducts } from '../data/products';
 import { CATALOG_BY_ID } from '../data/catalog';
+import { api } from '../../lib/api';
 import { preloadProductThumbnails } from './useImagePreloader';
 
 /**
  * 商品数据结构
- * 与后端保持一致
  */
 export interface Product {
   id: number;
@@ -32,469 +31,158 @@ export interface Product {
   colorLabels?: Record<string, { en: string; cn: string }>;
 }
 
-const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-c4f5ade4`;
+/**
+ * 商品列表 = 代码里的目录（data/catalog.ts + data/products.ts）+ 服务端保存的"运行时状态"
+ * （是否售罄、尺码 / 颜色库存，见 /api/products）。
+ *
+ * - 名称、价格、分类、图片只来自代码，服务端无法覆盖。
+ * - 服务端返回的、目录里不存在的商品 id 会被直接忽略，所以旧数据 / 缓存不会"复活"幽灵商品。
+ */
+type ProductState = { id: number; available?: boolean; options?: Record<string, number> };
 
 // ========== 全局状态 ==========
-// 内存缓存
-let productsCache: { data: Product[]; timestamp: number } | null = null;
-// 请求去重
-let ongoingRequest: Promise<Product[]> | null = null;
-// 订阅者：每个 useProducts 实例注册一个 setState 函数
+let stateCache: Map<number, ProductState> | null = null;
+let ongoingRequest: Promise<Map<number, ProductState>> | null = null;
 const subscribers = new Set<(products: Product[]) => void>();
-// 单商品缓存
-let singleProductCache = new Map<number, { data: Product; timestamp: number }>();
-// 全局版本号：每次 clearProductsCache 递增，强制跳过去重
-let globalVersion = 0;
 
-/**
- * 处理商品图片：过滤无效 URL，回退到本地 Figma assets
- */
+/** 过滤无效图片 URL，回退到本地资源 */
 function processProductImages(product: Product): Product {
-  const images = product.images || [];
-
-  // 过滤无效 URL
-  const validImages = images.filter(isValidImageUrl);
-
-  if (validImages.length > 0) {
-    return { ...product, images: validImages };
-  }
-
-  // 回退到本地 Figma assets
-  const localImages = getProductImages(product.id);
-  return { ...product, images: localImages };
+  const validImages = (product.images || []).filter(isValidImageUrl);
+  if (validImages.length > 0) return { ...product, images: validImages };
+  return { ...product, images: getProductImages(product.id) };
 }
 
-/**
- * 服饰商品尺码规整：
- *   1. options 为空（undefined/null/{}）→ 用本地兜底模板补 S/M/L/XL，每个尺码库存 0
- *   2. options 仅有 Default 一键 → 按种子比例拆到 S/M/L/XL
- *   3. 其余情况（已有多尺码）→ 不动
- */
-function normalizeApparelDefaultOnlyOptions(product: Product): Product {
-  if (product.category !== 'apparel') return product;
-
-  const opts = product.options;
-  const isEmpty =
-    opts === undefined ||
-    opts === null ||
-    (typeof opts === 'object' && Object.keys(opts).length === 0);
-  const isDefaultOnly =
-    !isEmpty &&
-    typeof opts === 'object' &&
-    Object.keys(opts!).length === 1 &&
-    Object.keys(opts!)[0] === 'Default';
-
-  if (!isEmpty && !isDefaultOnly) return product;
-
-  const fallback = localProducts.find((p) => p.id === product.id && p.category === 'apparel');
-  if (!fallback?.options) return product;
-  const tmplKeys = Object.keys(fallback.options).filter((k) => k !== 'Default');
-  if (tmplKeys.length === 0) return product;
-
-  // 空 options：每个尺码都设为 0（还原种子结构，方便管理员编辑库存）
-  if (isEmpty) {
-    return {
-      ...product,
-      options: Object.fromEntries(tmplKeys.map((k) => [k, 0])),
-      sizeGuide: product.sizeGuide ?? fallback.sizeGuide,
-    };
-  }
-
-  // Default-only：把总量按比例拆给各尺码
-  if (tmplKeys.length <= 1) return product;
-
-  const total = Math.max(0, Math.round(Number(opts!['Default']) || 0));
-  const tmpl = fallback.options;
-  let weights = tmplKeys.map((k) => Math.max(0, Math.round(Number((tmpl as Record<string, number>)[k]) || 0)));
-  const sumW = weights.reduce((a, b) => a + b, 0);
-  let distributed: Record<string, number>;
-
-  if (sumW <= 0) {
-    const each = Math.floor(total / tmplKeys.length);
-    let rem = total - each * tmplKeys.length;
-    distributed = Object.fromEntries(tmplKeys.map((k, i) => [k, each + (i < rem ? 1 : 0)]));
-  } else {
-    const raw = weights.map((w) => total * (w / sumW));
-    const floors = raw.map(Math.floor);
-    let rem = total - floors.reduce((a, b) => a + b, 0);
-    const order = tmplKeys.map((_, i) => i).sort(
-      (a, b) => (raw[b] - Math.floor(raw[b])) - (raw[a] - Math.floor(raw[a])),
-    );
-    const vals = [...floors];
-    for (let j = 0; j < rem; j++) vals[order[j % order.length]]++;
-    distributed = Object.fromEntries(tmplKeys.map((k, i) => [k, vals[i]]));
-  }
-
-  return {
-    ...product,
-    options: distributed,
-    sizeGuide: product.sizeGuide ?? fallback.sizeGuide,
-  };
-}
-
-/** 用本地种子补齐颜色变体；帽子等静态资源以仓库最新图和价格为准 */
-function enrichColorVariantsFromLocal(product: Product): Product {
-  const local = localProducts.find((p) => p.id === product.id);
-  if (!local) return product;
-  const next: Product = {
-    ...product,
-    colorImages: local.colorImages ?? product.colorImages,
-    colorLabels: local.colorLabels ?? product.colorLabels,
-  };
-  if (local.colorImages) {
-    next.images = local.images;
-    next.sizeGuide = local.sizeGuide ?? product.sizeGuide;
-  }
-  return next;
-}
-
-/** 合并 API 列表中缺失的本地种子商品（如新上架帽子尚未写入 KV） */
-function mergeLocalOnlyProducts(apiProducts: Product[]): Product[] {
-  const ids = new Set(apiProducts.map((p) => p.id));
-  const extras = localProducts
-    .filter((p) => !ids.has(p.id))
-    .map((p) => finalizeProduct(p));
-  if (extras.length === 0) return apiProducts;
-  return [...apiProducts, ...extras].sort((a, b) => a.id - b.id);
-}
-
-/** 价格只来自代码里的目录（data/catalog.ts），接口返回的任何价格都会被覆盖 */
-function applyCatalogOverrides(product: Product): Product {
-  const entry = CATALOG_BY_ID[product.id];
-  if (!entry) return product;
-  return { ...product, price: entry.price };
-}
-
-/** 图片处理 + 服饰 Default 占位拆尺码 */
+/** 图片处理 + 价格强制取代码目录里的价格 */
 export function finalizeProduct(product: Product): Product {
-  return applyCatalogOverrides(
-    normalizeApparelDefaultOnlyOptions(
-      processProductImages(enrichColorVariantsFromLocal(product)),
-    ),
-  );
+  const withImages = processProductImages(product);
+  const entry = CATALOG_BY_ID[product.id];
+  return entry ? { ...withImages, price: entry.price } : withImages;
 }
 
-/**
- * 从后端 API 拉取最新商品列表（纯函数，无副作用）
- */
-async function fetchFromAPI(): Promise<Product[]> {
-  const MAX_RETRIES = 3;
-  let lastError: Error | null = null;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-    try {
-      const response = await fetch(`${API_BASE}/products`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Cache-Control': 'no-cache, no-store',
-          'Pragma': 'no-cache',
-        },
-        cache: 'no-store',
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      // 只认代码目录里的商品 ID：接口 / 旧缓存里多出来的"幽灵商品"一律丢弃
-      const known = ((data.products || []) as Product[]).filter((p) => CATALOG_BY_ID[p.id]);
-      return mergeLocalOnlyProducts(known.map(finalizeProduct));
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      console.warn(`[PRODUCTS] Fetch attempt ${attempt}/${MAX_RETRIES} failed:`, lastError.message);
-      if (attempt < MAX_RETRIES) {
-        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-      }
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  throw lastError || new Error('Failed to fetch products after retries');
-}
-
-/**
- * 核心拉取函数：带去重和缓存更新
- * @param forceNew - 为 true 时强制发起新请求，忽略正在进行的请求
- */
-async function doFetch(forceNew = false): Promise<Product[]> {
-  // 如果有正在进行的请求且不强制，直接复用
-  if (ongoingRequest && !forceNew) {
-    return ongoingRequest;
-  }
-
-  // 如果强制刷新，废弃旧请求
-  if (forceNew) {
-    ongoingRequest = null;
-  }
-
-  const request = (async () => {
-    // Retry up to 3 times with exponential backoff for transient failures
-    let lastError: Error | null = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        if (attempt > 0) {
-          await new Promise(r => setTimeout(r, 1000 * attempt)); // 1s, 2s backoff
+/** 目录商品 + 运行时状态 → 展示用商品 */
+function buildProducts(): Product[] {
+  return localProducts
+    .filter((p) => CATALOG_BY_ID[p.id])
+    .map((base) => {
+      const merged = finalizeProduct(base as Product);
+      const state = stateCache?.get(base.id);
+      if (!state) return merged;
+      const next: Product = { ...merged };
+      if (typeof state.available === 'boolean') next.available = state.available;
+      if (merged.options && state.options) {
+        const options: Record<string, number> = { ...merged.options };
+        for (const key of Object.keys(options)) {
+          if (typeof state.options[key] === 'number') options[key] = state.options[key];
         }
-        return await fetchFromAPI();
-      } catch (err) {
-        lastError = err instanceof Error ? err : new Error(String(err));
-        console.warn(`[useProducts] Fetch attempt ${attempt + 1}/3 failed:`, lastError.message);
+        next.options = options;
       }
-    }
-    throw lastError;
-  })().then((products) => {
-    // 更新缓存
-    productsCache = { data: products, timestamp: Date.now() };
-    // 更新单商品缓存
-    products.forEach(p => {
-      singleProductCache.set(p.id, { data: p, timestamp: Date.now() });
+      return next;
     });
-    // 预加载缩略图
-    preloadProductThumbnails(products);
-    return products;
-  }).finally(() => {
-    // 只有当当前 ongoingRequest 仍是此次请求时才清除
-    if (ongoingRequest === request) {
-      ongoingRequest = null;
+}
+
+function broadcast() {
+  const list = buildProducts();
+  subscribers.forEach((setter) => {
+    try {
+      setter(list);
+    } catch {
+      /* ignore */
     }
   });
+}
 
+async function fetchState(): Promise<Map<number, ProductState>> {
+  if (ongoingRequest) return ongoingRequest;
+  const request = api<{ products: ProductState[] }>('/api/products')
+    .then((data) => {
+      const map = new Map<number, ProductState>();
+      for (const item of data.products || []) {
+        if (CATALOG_BY_ID[item.id]) map.set(item.id, item); // 忽略目录里没有的 id
+      }
+      stateCache = map;
+      return map;
+    })
+    .finally(() => {
+      if (ongoingRequest === request) ongoingRequest = null;
+    });
   ongoingRequest = request;
   return request;
 }
 
-/**
- * 广播最新数据到所有订阅者
- */
-function broadcastToSubscribers(products: Product[]) {
-  subscribers.forEach(setter => {
-    try { setter(products); } catch (e) { /* ignore */ }
-  });
+/** 强制重新向服务端拉取最新库存状态并通知所有组件 */
+export async function refreshProductState() {
+  try {
+    ongoingRequest = null;
+    await fetchState();
+    broadcast();
+  } catch (err) {
+    console.warn('[useProducts] Failed to refresh product state:', err);
+  }
 }
 
-// ========== 公开 API ==========
+/** 管理员改完库存 / 售罄状态后：先本地更新（立即生效），再向服务端确认 */
+export function applyProductState(id: number, patch: { available?: boolean; options?: Record<string, number> }) {
+  if (!CATALOG_BY_ID[id]) return;
+  const map = stateCache ?? new Map<number, ProductState>();
+  const current = map.get(id) ?? { id };
+  map.set(id, {
+    ...current,
+    ...(patch.available !== undefined ? { available: patch.available } : {}),
+    ...(patch.options ? { options: { ...(current.options ?? {}), ...patch.options } } : {}),
+  });
+  stateCache = map;
+  broadcast();
+}
+
+/** 兼容旧调用：清缓存并重新拉取 */
+export function clearProductsCache() {
+  void refreshProductState();
+}
 
 /**
- * Hook: 从后端 API 获取所有商品
- * 使用 stale-while-revalidate 策略：先显示缓存，后台刷新
+ * Hook: 获取所有商品（目录 + 服务端运行时状态）
  */
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>(() =>
-    (productsCache?.data ?? localProducts).map(finalizeProduct));
-  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>(() => buildProducts());
+  const [loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 注册订阅者
     subscribers.add(setProducts);
+    let cancelled = false;
 
-    // 初始拉取
-    const init = async () => {
-      try {
-        // 先应用缓存
-        if (productsCache?.data) {
-          setProducts(productsCache.data.map(finalizeProduct));
+    fetchState()
+      .then(() => {
+        if (!cancelled) {
+          setProducts(buildProducts());
+          setError(null);
         }
-        // 后台拉取最新
-        const fresh = await doFetch();
-        setProducts(fresh);
-        setError(null);
-      } catch (err) {
-        console.error('[useProducts] Error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load products');
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-
-    // 监听全局刷新事件
-    const handleRefresh = async () => {
-      try {
-        const fresh = await doFetch(true); // 强制新请求
-        setProducts(fresh);
-      } catch (err) {
-        console.error('[useProducts] Refresh error:', err);
-      }
-    };
-    window.addEventListener('products-force-refresh', handleRefresh);
+      })
+      .catch((err) => {
+        // 服务端暂时不可用时仍显示目录里的默认状态
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load product status');
+      });
 
     return () => {
+      cancelled = true;
       subscribers.delete(setProducts);
-      window.removeEventListener('products-force-refresh', handleRefresh);
     };
   }, []);
+
+  useEffect(() => {
+    if (products.length > 0) preloadProductThumbnails(products);
+  }, [products]);
 
   return { products, loading, error };
 }
 
 /**
- * 管理员更新商品后调用：立即更新本地缓存 + 通知所有组件
- * 这是一个同步操作，不涉及网络请求
- */
-export function updateProductInCache(updatedProduct: Product) {
-  const processed = finalizeProduct(updatedProduct);
-
-  // 更新列表缓存
-  if (productsCache?.data) {
-    const idx = productsCache.data.findIndex(p => p.id === processed.id);
-    if (idx !== -1) {
-      // 保留原图片如果新数据没有图片
-      const original = productsCache.data[idx];
-      if (processed.images.length === 0 && original.images.length > 0) {
-        processed.images = original.images;
-      }
-      productsCache.data[idx] = processed;
-    }
-  }
-
-  // 更新单商品缓存
-  singleProductCache.set(processed.id, { data: processed, timestamp: Date.now() });
-
-  // 更新本地兜底数据
-  const localIdx = localProducts.findIndex(p => p.id === processed.id);
-  if (localIdx !== -1) {
-    localProducts[localIdx] = { ...localProducts[localIdx], ...processed };
-  }
-
-  // 立即通知所有订阅者（用当前缓存数据，无需等网络）
-  if (productsCache?.data) {
-    broadcastToSubscribers([...productsCache.data]);
-  }
-}
-
-/**
- * 清除缓存并强制所有组件从后端重新拉取最新数据
- * 这是确保管理员修改后前端同步的核心函数
- */
-export function clearProductsCache() {
-  console.log('[useProducts] Clearing cache and forcing refresh...');
-
-  // 递增版本号
-  globalVersion++;
-
-  // 使缓存过期（但不清空，留作 stale 显示）
-  if (productsCache) productsCache.timestamp = 0;
-  singleProductCache.forEach(v => { v.timestamp = 0; });
-
-  // 废弃进行中的请求
-  ongoingRequest = null;
-
-  // 触发所有组件强制刷新（发起新的网络请求）
-  window.dispatchEvent(new CustomEvent('products-force-refresh'));
-
-  // 跨标签页通知
-  localStorage.setItem('products-cache-cleared', String(Date.now()));
-}
-
-/**
- * Hook: 从后端 API 获取单个商品
- * 监听缓存清除事件，实时更新
+ * Hook: 获取单个商品
  */
 export function useProduct(id: number) {
-  const getInitial = (): Product | null => {
-    if (!id || !CATALOG_BY_ID[id]) return null;
-    const cached = singleProductCache.get(id);
-    if (cached) return finalizeProduct(cached.data);
-    if (productsCache?.data) {
-      const found = productsCache.data.find(p => p.id === id);
-      if (found) return finalizeProduct(found);
-    }
-    const local = localProducts.find(p => p.id === id);
-    return local ? finalizeProduct(local) : null;
-  };
-
-  const [product, setProduct] = useState<Product | null>(getInitial());
-  const [loading, setLoading] = useState(!getInitial());
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProduct = useCallback(async () => {
-    if (!id || !CATALOG_BY_ID[id]) { setLoading(false); return; }
-
-    try {
-      const response = await fetch(`${API_BASE}/products/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-          'Cache-Control': 'no-cache, no-store',
-          'Pragma': 'no-cache',
-        },
-        cache: 'no-store',
-      });
-
-      if (!response.ok) {
-        // 404：回退本地种子（如新帽子尚未写入 KV）
-        if (response.status === 404) {
-          const local = localProducts.find(p => p.id === id);
-          if (local) {
-            const processed = finalizeProduct(local);
-            singleProductCache.set(id, { data: processed, timestamp: Date.now() });
-            setProduct(processed);
-            setError(null);
-            return;
-          }
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const processed = finalizeProduct(data.product);
-
-      // 更新缓存
-      singleProductCache.set(id, { data: processed, timestamp: Date.now() });
-
-      // 同步到列表缓存
-      if (productsCache?.data) {
-        const idx = productsCache.data.findIndex(p => p.id === id);
-        if (idx !== -1) productsCache.data[idx] = processed;
-      }
-
-      setProduct(processed);
-      setError(null);
-    } catch (err) {
-      console.error(`[useProduct] Error fetching product ${id}:`, err);
-      const local = localProducts.find(p => p.id === id);
-      if (local) {
-        const processed = finalizeProduct(local);
-        setProduct(processed);
-        setError(null);
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to load product');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    // 先应用缓存
-    const cached = getInitial();
-    if (cached) setProduct(cached);
-
-    // 后台拉取最新
-    fetchProduct();
-
-    // 监听刷新事件
-    const handleRefresh = () => { fetchProduct(); };
-    window.addEventListener('products-force-refresh', handleRefresh);
-
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'products-cache-cleared') handleRefresh();
-    };
-    window.addEventListener('storage', handleStorage);
-
-    return () => {
-      window.removeEventListener('products-force-refresh', handleRefresh);
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, [fetchProduct]);
-
-  return { product, loading, error };
+  const { products, loading, error } = useProducts();
+  const product = id && CATALOG_BY_ID[id] ? products.find((p) => p.id === id) ?? null : null;
+  return { product, loading, error: product ? null : error ?? (id ? 'Product not found' : null) };
 }
 
 /** New 商品排在同类最前，其余按英文名，ID 作为稳定次序 */

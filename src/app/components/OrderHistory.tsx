@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useProfile } from '../contexts/ProfileContext';
+import { useCheckoutProfile } from '../contexts/CheckoutProfileContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
-import { supabase } from '../../lib/supabaseClient';
+import { api, ApiError } from '../../lib/api';
 import { Loader2, RefreshCw, Clock, Trash2, XCircle } from 'lucide-react';
 import {
   Table,
@@ -37,217 +36,96 @@ interface Order {
   completed?: boolean; // 管理员标记为已完成
 }
 
-const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-c4f5ade4`;
-
 export default function OrderHistory() {
-  const { session, user, profile, loading } = useProfile();
+  // 学生不需要登录：用结账时验证过的邮箱（服务端签发的 verifyToken）查看自己的订单
+  const { checkoutProfile, invalidateVerification } = useCheckoutProfile();
+  const user = checkoutProfile.emailVerified ? { email: checkoutProfile.email } : null;
+  const loading = false;
   const { language } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // 翻译函数
   const t = (en: string, cn: string) => language === 'en' ? en : cn;
 
   useEffect(() => {
-    if (!loading && user && session) {
-      loadOrders();
-    } else if (!loading && !user) {
+    if (user) {
+      void loadOrders();
+    } else {
       setFetching(false);
     }
-  }, [loading, user, session]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkoutProfile.emailVerified, checkoutProfile.verifyToken]);
 
-  /**
-   * 从后端 API 加载订单（云端同步）
-   */
+  const handleAuthError = (err: unknown): boolean => {
+    if (err instanceof ApiError && err.status === 401) {
+      invalidateVerification();
+      return true;
+    }
+    return false;
+  };
+
+  /** 从服务端加载我的订单 */
   const loadOrders = async () => {
-    if (!user || !session) {
-      console.log('[OrderHistory] Cannot load - no user or session');
-      setFetching(false);
-      return;
-    }
-
     try {
       setFetching(true);
       setError(null);
-      
-      console.log('[OrderHistory] Getting fresh session...');
-      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !freshSession?.access_token) {
-        console.error('[OrderHistory] Session error:', sessionError);
-        setError('Session expired, please log in again / 会话过期，请重新登录');
-        setOrders([]);
-        return;
-      }
-      
-      console.log('[OrderHistory] Fetching orders from API...');
-      
-      // 使用 anon key 通过网关，token 通过查询参数传递
-      const url = `${API_BASE}/orders?_auth_token=${encodeURIComponent(freshSession.access_token)}`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('[OrderHistory] Failed to fetch orders:', response.status, errorData);
-        
-        if (response.status === 401) {
-          setError('Session expired, please log in again / 会话过期，请重新登录');
-        } else {
-          setError(errorData.error || 'Failed to load orders / 加载订单失败');
-        }
-        setOrders([]);
-        return;
-      }
-
-      const data = await response.json();
-      const fetchedOrders = data.orders || [];
-      
-      // 按创建时间降序排序
-      const sorted = fetchedOrders.sort((a: Order, b: Order) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const data = await api<{ orders: Order[] }>('/api/orders', { student: true });
+      setOrders(
+        [...(data.orders || [])].sort(
+          (x, y) => new Date(y.createdAt).getTime() - new Date(x.createdAt).getTime(),
+        ),
       );
-      
-      setOrders(sorted);
-      console.log('[OrderHistory] Orders loaded from API:', sorted.length);
-    } catch (error) {
-      console.error('[OrderHistory] Failed to load orders:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load orders / 加载订单失败');
+    } catch (err) {
+      if (handleAuthError(err)) {
+        setError('Email verification expired, please verify again / 邮箱验证已过期，请重新验证');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to load orders / 加载订单失败');
+      }
       setOrders([]);
     } finally {
       setFetching(false);
     }
   };
 
-  /**
-   * 清空已完成的订单
-   */
+  /** 清空已完成的订单 */
   const clearCompletedOrders = async () => {
-    if (!user || !session) {
-      toast.error('Please log in / 请先登录');
-      return;
-    }
-
-    // 统计已完成订单数量
     const completedCount = orders.filter(o => o.completed || o.status === 'completed').length;
-    
+
     if (completedCount === 0) {
       toast.info(language === 'en' ? 'No completed orders to clear' : '没有已完成的订单可清空');
       return;
     }
 
-    // 确认操作
     const confirmed = window.confirm(
-      language === 'en' 
+      language === 'en'
         ? `Delete ${completedCount} completed order(s)? This action cannot be undone.`
         : `确定删除 ${completedCount} 个已完成订单吗？此操作无法撤销。`
     );
-
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
-      console.log('[OrderHistory] Clearing completed orders...');
-      
-      // 获取最新 session
-      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !freshSession?.access_token) {
-        console.error('[OrderHistory] Session error:', sessionError);
-        toast.error('Session expired, please log in again / 会话过期，请重新登录');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/orders/completed`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`,
-        },
-        body: JSON.stringify({
-          _auth_token: freshSession.access_token,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('[OrderHistory] Failed to clear completed orders:', response.status, errorData);
-        toast.error(errorData.error || 'Failed to clear completed orders / 清空订单失败');
-        return;
-      }
-
-      const data = await response.json();
-      console.log('[OrderHistory] Completed orders cleared:', data.deletedCount);
-
-      toast.success(language === 'en' 
+      const data = await api<{ deletedCount: number }>('/api/orders', { method: 'DELETE', student: true });
+      toast.success(language === 'en'
         ? `Successfully deleted ${data.deletedCount} completed order(s)`
         : `成功删除 ${data.deletedCount} 个已完成订单`);
-
-      // 重新加载订单列表
-      loadOrders();
-    } catch (error) {
-      console.error('[OrderHistory] Error clearing completed orders:', error);
-      toast.error('Error clearing completed orders / 清空订单错误');
+      void loadOrders();
+    } catch (err) {
+      if (handleAuthError(err)) return;
+      toast.error(err instanceof Error ? err.message : 'Failed to clear completed orders / 清空订单失败');
     }
   };
 
-  /**
-   * 取消订单
-   */
+  /** 取消订单 */
   const cancelOrder = async (orderId: string) => {
-    if (!user || !session) {
-      console.log('[OrderHistory] Cannot cancel - no user or session');
-      return;
-    }
-
     try {
-      console.log('[OrderHistory] Getting fresh session for cancel...');
-      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !freshSession?.access_token) {
-        console.error('[OrderHistory] Session error:', sessionError);
-        toast.error('Session expired, please log in again / 会话过期，请重新登录');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/cancel-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`,
-        },
-        body: JSON.stringify({
-          orderId,
-          userId: user.id,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('[OrderHistory] Failed to cancel order:', response.status, errorData);
-        toast.error(errorData.error || 'Failed to cancel order / 取消订单失败');
-        return;
-      }
-
-      const data = await response.json();
-      console.log('[OrderHistory] Order cancelled:', data);
-
-      toast.success(language === 'en' 
-        ? 'Order cancelled successfully'
-        : '订单已取消');
-
-      // 重新加载订单列表
-      loadOrders();
-    } catch (error) {
-      console.error('[OrderHistory] Error cancelling order:', error);
-      toast.error('Error cancelling order / 取消订单错误');
+      await api('/api/orders', { method: 'PATCH', student: true, body: { orderId, status: 'cancelled' } });
+      toast.success(language === 'en' ? 'Order cancelled successfully' : '订单已取消');
+      void loadOrders();
+    } catch (err) {
+      if (handleAuthError(err)) return;
+      toast.error(err instanceof Error ? err.message : 'Failed to cancel order / 取消订单失败');
     }
   };
 
