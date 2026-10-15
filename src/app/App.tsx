@@ -140,7 +140,7 @@ function Router() {
   const showMainPadding = currentPage !== '/' && currentPage !== '/home' && currentPage !== '/tag';
   
   return (
-    <div className={`w-full ${showMainPadding ? 'pt-[10vh]' : ''}`}>
+    <div className={`w-full ${showMainPadding ? 'pt-[clamp(60px,10vh,80px)]' : ''}`}>
       {showSubNavbar && <SubNavbar />}
       {renderPage()}
       {showFooter && <Footer />}

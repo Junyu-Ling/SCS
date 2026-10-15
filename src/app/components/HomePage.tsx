@@ -12,8 +12,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative w-full bg-white pt-20">
-      <div className="relative w-full h-[min(100vw,calc(100svh-5rem))]">
+    <div className="relative w-full bg-white pt-[clamp(60px,10vh,80px)]">
+      <div className="relative w-full h-[min(100vw,calc(100svh-clamp(60px,10vh,80px)))]">
         <OptimizedImage
           src={bgImage}
           alt={t('Campus Shop', '宋校文创商品店')}
