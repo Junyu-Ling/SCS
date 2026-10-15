@@ -8,7 +8,13 @@ export default function ProductListPage() {
   const { language, t } = useLanguage();
   const { products } = useProducts();
   const { isStocked } = useInventory();
-  const [filterType, setFilterType] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>(() => {
+    const hash = window.location.hash;
+    if (hash.includes('/tag/')) {
+      return hash.split('/tag/')[1] || 'all';
+    }
+    return 'all';
+  });
 
   // ✅ 页面可见时自动刷新 + 定时轮询，确保管理员修改后用户端实时同步
   useEffect(() => {
@@ -98,37 +104,39 @@ export default function ProductListPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
-        {/* Page Title */}
-        <div className="mb-8 sm:mb-10">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl text-black mb-2 font-semibold">
-            {language === 'en' ? getCategoryTitle(filterType).en : getCategoryTitle(filterType).cn}
-          </h1>
-          <p className="text-sm text-[#4A5E55]">
-            {filteredProducts.length} {t('products', '件商品')}
-          </p>
-        </div>
-
-        {/* Product Grid - 使用优化的 ProductCard 组件 */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                language={language}
-                isStocked={product.available ?? isStocked(product.id)}
-                onClick={handleProductClick}
-                t={t}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">
-              {t('No products found in this category.', '该分类下暂无商品。')}
+        <div key={filterType} className="product-tag-emerge">
+          {/* Page Title */}
+          <div className="mb-8 sm:mb-10">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl text-black mb-2 font-semibold">
+              {language === 'en' ? getCategoryTitle(filterType).en : getCategoryTitle(filterType).cn}
+            </h1>
+            <p className="text-sm text-[#4A5E55]">
+              {filteredProducts.length} {t('products', '件商品')}
             </p>
           </div>
-        )}
+
+          {/* Product Grid - 使用优化的 ProductCard 组件 */}
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  language={language}
+                  isStocked={product.available ?? isStocked(product.id)}
+                  onClick={handleProductClick}
+                  t={t}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">
+                {t('No products found in this category.', '该分类下暂无商品。')}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

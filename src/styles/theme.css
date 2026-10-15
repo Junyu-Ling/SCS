@@ -271,3 +271,24 @@ html.theme-transitioning video {
 .animate-shimmer {
   animation: shimmer 1.8s ease-in-out infinite;
 }
+
+@keyframes product-tag-emerge {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.product-tag-emerge {
+  animation: product-tag-emerge 280ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-tag-emerge {
+    animation: none;
+  }
+}
