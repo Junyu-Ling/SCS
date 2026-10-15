@@ -12,34 +12,36 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative w-full overflow-x-hidden bg-white">
-      <div className="relative min-h-[68vh] sm:min-h-[72vh] md:min-h-[78vh] w-full flex items-center justify-center overflow-hidden pt-[10vh]">
+    <div className="relative w-full bg-white pt-20">
+      <div className="relative w-full h-[min(100vw,calc(100svh-5rem))]">
         <OptimizedImage
           src={bgImage}
           alt="Campus Shop"
           priority={true}
           blurUp
           placeholderSrc={HERO_BLUR_PLACEHOLDER}
-          wrapperClassName="absolute inset-0 w-full h-full"
-          className="w-full h-full object-cover"
+          wrapperClassName="absolute inset-0 h-full w-full"
+          className="h-full w-full object-cover object-top"
         />
 
-        <div className="absolute inset-0 bg-black/40 z-10"></div>
+        <div className="pointer-events-none absolute inset-0 bg-black/35" />
 
-        <div className="relative z-20 w-full max-w-4xl text-center text-white px-6 py-12 flex flex-col items-center">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-5 font-semibold leading-[1.1]">
-            {t('SCLS Campus Shop', '欢 迎 光 临')}
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl mb-10 sm:mb-12 opacity-80 font-normal leading-[1.6]">
-            {t('SCLS Student-Run Campus Shop', '宋校文创商品店')}
-          </p>
-          <Button
-            onClick={handleShopNow}
-            size="lg"
-            className="bg-[#174D3D] text-white hover:bg-[#0F3A2E] border-0 text-sm sm:text-base px-8 py-5 rounded-xl font-medium transition-colors duration-200"
-          >
-            {t('Shop Now', '开始购物')}
-          </Button>
+        <div className="absolute inset-0 z-10 flex items-center justify-center px-4 py-6">
+          <div className="flex w-full max-w-4xl flex-col items-center text-center text-white">
+            <h1 className="max-w-full text-[clamp(1.75rem,5.5vw,4.25rem)] font-semibold leading-tight">
+              {t('SCLS Campus Shop', '欢 迎 光 临')}
+            </h1>
+            <p className="mt-3 max-w-full text-[clamp(0.95rem,2.2vw,1.25rem)] font-normal leading-snug opacity-90">
+              {t('SCLS Student-Run Campus Shop', '宋校文创商品店')}
+            </p>
+            <Button
+              onClick={handleShopNow}
+              size="lg"
+              className="mt-6 bg-[#174D3D] text-white hover:bg-[#0F3A2E] border-0 text-sm sm:text-base px-8 py-5 rounded-xl font-medium transition-colors duration-200"
+            >
+              {t('Shop Now', '开始购物')}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

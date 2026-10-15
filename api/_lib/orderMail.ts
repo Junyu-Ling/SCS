@@ -1,6 +1,6 @@
 import { mailConfigured, sendMail } from './mail.js';
 import {
-  ADMIN_NOTIFY_EMAILS,
+  adminNotifyRecipients,
   renderAdminOrderNotificationEmail,
   renderOrderConfirmationEmail,
   type MailOrder,
@@ -42,7 +42,7 @@ export async function sendOrderEmails(order: MailOrder): Promise<OrderMailResult
     }
 
     const adminMail = renderAdminOrderNotificationEmail(order);
-    for (const to of new Set(ADMIN_NOTIFY_EMAILS)) {
+    for (const to of adminNotifyRecipients()) {
       jobs.push({ kind: 'admin', to, run: () => sendMail({ to, ...adminMail }) });
     }
 

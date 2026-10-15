@@ -38,11 +38,12 @@ export function parseEmailList(value: string | undefined | null): string[] {
     .filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s));
 }
 
-// 管理员通知收件人；可用环境变量 ADMIN_NOTIFY_EMAILS（逗号分隔）覆盖
-export const ADMIN_NOTIFY_EMAILS: string[] = (() => {
-  const fromEnv = parseEmailList(process.env.ADMIN_NOTIFY_EMAILS);
-  return fromEnv.length > 0 ? fromEnv : DEFAULT_ADMIN_EMAILS;
-})();
+// 下单通知固定发给这三位初始管理员。ADMIN_NOTIFY_EMAILS 只能追加收件人，不能把他们换成一个人。
+// 用 process.env[name] 在发信时读取，避免构建期把变量内联成空字符串或单个地址。
+export function adminNotifyRecipients(): string[] {
+  const fromEnv = parseEmailList(process.env['ADMIN_NOTIFY_EMAILS']);
+  return [...new Set([...DEFAULT_ADMIN_EMAILS, ...fromEnv])];
+}
 
 const CODE_TTL_MINUTES = 10;
 

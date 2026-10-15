@@ -106,7 +106,7 @@ export default function TagsPage() {
                   <OptimizedImage
                     src={category.image}
                     alt={language === 'en' ? category.name.en : category.name.cn}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain"
                   />
                   <div className="absolute inset-x-0 bottom-0 h-24 bg-black/45"></div>
                   <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -132,7 +132,7 @@ export default function TagsPage() {
               <OptimizedImage
                 src={category.image}
                 alt={language === 'en' ? category.name.en : category.name.cn}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain"
               />
               <div className="absolute inset-x-0 bottom-0 h-16 bg-black/45"></div>
               <div className="absolute bottom-0 left-0 right-0 p-3">

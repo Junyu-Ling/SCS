@@ -369,7 +369,7 @@ export default function AboutUsPage() {
                 alt={t('About Us', '关于我们')}
                 priority={true}
                 wrapperClassName="absolute inset-0 h-full w-full"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
