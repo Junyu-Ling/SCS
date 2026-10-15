@@ -2,7 +2,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from './ui/button';
 import { OptimizedImage } from './OptimizedImage';
 import { HERO_BLUR_PLACEHOLDER } from './heroBlur';
-import bgImage from 'figma:asset/61b600464c10ad2f4fcf9d9d77c1d869e872c127.png';
+import bgImage from 'figma:asset/61b600464c10ad2f4fcf9d9d77c1d869e872c127.webp';
 
 export default function HomePage() {
   const { t } = useLanguage();

@@ -4,7 +4,7 @@ import { api } from '../../lib/api';
 import { useProfile } from '../contexts/ProfileContext';
 import { Pencil } from 'lucide-react';
 import { OptimizedImage } from './OptimizedImage';
-import heroImage from 'figma:asset/category-about-us.jpg';
+import heroImage from 'figma:asset/category-about-us.webp';
 import AboutUsEditor, {
   DEFAULT_ABOUT_US_CONTENT,
   type AboutUsContent,

@@ -1,0 +1,8 @@
+# Not needed in Git or CLI uploads; keeps Deployment Storage smaller
+supabase/.temp
+.env
+.env.*
+.cursor
+.git
+*.md
+src/assets/_opt

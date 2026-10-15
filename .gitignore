@@ -24,6 +24,9 @@ Thumbs.db
 # Temp
 tmp/
 *.local
+supabase/.temp/
 
 # Vercel
 .vercel/
+
+.vercel
