@@ -14,6 +14,8 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   wrapperClassName?: string;
   /** blurUp 模式下的低清缩略图（内联 data URI），加载前以模糊图呈现，而不是纯色底 */
   placeholderSrc?: string;
+  /** 模糊占位与主图使用同一 object-position，避免加载时画面跳动 */
+  placeholderClassName?: string;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -33,6 +35,7 @@ export function OptimizedImage({
   blurUp = false,
   wrapperClassName = '',
   placeholderSrc,
+  placeholderClassName = '',
   onLoad,
   onError,
   ...rest
@@ -142,7 +145,10 @@ export function OptimizedImage({
           <img
             src={placeholderSrc}
             alt=""
-            className="w-full h-full object-cover blur-2xl scale-125"
+            className={cn(
+              'w-full h-full object-cover blur-2xl scale-125',
+              placeholderClassName
+            )}
             decoding="sync"
           />
         ) : null}

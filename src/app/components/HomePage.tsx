@@ -21,7 +21,8 @@ export default function HomePage() {
           blurUp
           placeholderSrc={HERO_BLUR_PLACEHOLDER}
           wrapperClassName="absolute inset-0 h-full w-full"
-          className="h-full w-full object-cover object-top"
+          placeholderClassName="object-[center_55%]"
+          className="h-full w-full object-cover object-[center_55%]"
         />
 
         <div className="pointer-events-none absolute inset-0 bg-black/35" />
